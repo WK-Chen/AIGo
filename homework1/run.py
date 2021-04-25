@@ -3,7 +3,7 @@ import pygame
 import datetime
 import argparse
 
-from utils import read_file, set_matrix, random_matrix,set_goal
+from utils import read_file, set_matrix, random_matrix, set_goal
 from astar import A_start
 
 WHITE = (255, 255, 255)
@@ -31,6 +31,8 @@ def refresh(screen, matrixs: List) -> None:
             screen.blit(convert_int_to_image(num), [j * 50, i * 50])
     pygame.display.update()
 
+def save_as_image(screen, step):
+    pygame.image.save(screen, './output/result{}.png'.format(step))
 
 def main():
     parser = argparse.ArgumentParser()
@@ -57,8 +59,10 @@ def main():
     print("time = {}s".format((end_t - start_t).total_seconds()))
 
     # visualize
-    screen = init(matrix)
     step = 0
+    screen = init(matrix)
+    save_as_image(screen, step)
+
     if not stack:
         print("failed!")
         return
@@ -66,6 +70,7 @@ def main():
         step += 1
         new_state = stack.pop()
         refresh(screen, new_state)
+        save_as_image(screen, step)
         pygame.time.wait(1000)
     pygame.time.wait(2000)
     print("step = {}".format(step))
