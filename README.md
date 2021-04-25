@@ -3,4 +3,4 @@
 ### 4/24/2021
 * Problem: Fifteen Puzzle Solution
 * Uses A* Algorithm
-* ！[image](https://github.com/WK-Chen/AIGo/blob/master/homework1/result.gif)
+* ![image](https://github.com/WK-Chen/AIGo/blob/master/homework1/result.gif)
