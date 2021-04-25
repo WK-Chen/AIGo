@@ -5,5 +5,5 @@
 * Uses A* Algorithm
 * example  
 raw       target
-![image](https://github.com/WK-Chen/AIGo/blob/master/homework1/output/result0.gif)
+![image](https://github.com/WK-Chen/AIGo/blob/master/homework1/output/result0.png)
 ![image](https://github.com/WK-Chen/AIGo/blob/master/homework1/result.gif)
