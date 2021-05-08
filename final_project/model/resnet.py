@@ -55,8 +55,8 @@ class ResNet(nn.Module):
         return out
 
 
-def ResNet8():
-    return ResNet(Block, 8)
+def ResNet9():
+    return ResNet(Block, 9)
 
 
 def ResNet19():

@@ -1,0 +1,14 @@
+{
+  "MOVES": 2000,
+  "BATCH_SIZE": 64,
+  "OUTPLANES_MAP": 10,
+  "INPLANES": 9,
+  "OUTPLANES": 81,
+  "BLOCKS": 9,
+  "TRAIN_STEPS": 6,
+  "ADAM": "True",
+  "LR_DECAY": 0.1,
+  "LR_DECAY_ITE": 600,
+  "LOSS_TICK": 16,
+  "REFRESH_TICK": 64
+}
