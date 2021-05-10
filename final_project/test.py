@@ -1,10 +1,6 @@
 ### tmp
-from model.agent import Player
 import time
-import timeit
-from model.config import *
-from utils.utils import get_player, load_player
-from lib.process import create_matches
+from utils.utils import get_player
 from lib.game import Game
 
 def self_play(current_time, loaded_version):
@@ -35,7 +31,7 @@ def self_play(current_time, loaded_version):
             player = new_player
             print("[PLAY] New player !")
 
-        game = Game(player, 1, opponent=None, mcts_flag=False)
+        game = Game(player, 1, opponent=None)
         game.__call__()
         print("FINISH")
         assert False

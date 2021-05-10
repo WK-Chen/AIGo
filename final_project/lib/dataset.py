@@ -1,7 +1,7 @@
 import numpy as np
 from torch.utils.data import Dataset
-from model.config import *
-from ..utils import utils
+from utils.config import *
+from utils import utils
 
 
 class SelfPlayDataset(Dataset):

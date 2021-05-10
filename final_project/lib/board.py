@@ -34,5 +34,4 @@ class Board():
     def check_terminal(self, player_color):
         # TODO code to judge whether player wins
         self.is_terminal = True
-        print("IS_terminal:{}".format(self.is_terminal))
         return 1

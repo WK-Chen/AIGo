@@ -1,9 +1,8 @@
 import os
 import numpy as np
 import random
-import torch
 from model.agent import Player
-from model.config import *
+from utils.config import *
 
 
 def _prepare_state(state):
@@ -12,7 +11,7 @@ def _prepare_state(state):
     """
 
     x = torch.from_numpy(np.array([state]))
-    x = torch.tensor(x, dtype=torch.float, device=DEVICE)
+    x = torch.as_tensor(x, dtype=torch.float, device=DEVICE)
     return x
 
 

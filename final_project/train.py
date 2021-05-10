@@ -8,7 +8,7 @@ from utils.utils import load_player
 from copy import deepcopy
 from pymongo import MongoClient
 from torch.utils.data import DataLoader
-from model.config import *
+from utils.config import *
 from model.agent import Player
 
 

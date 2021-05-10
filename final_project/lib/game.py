@@ -1,6 +1,6 @@
 import numpy as np
 import pickle
-from model.config import *
+from utils.config import *
 from model.mcts import MCTS
 from .go import GobangEnv
 from utils.utils import _prepare_state
@@ -51,11 +51,11 @@ class Game:
 
     def _play(self, state, player, competitive=False):
         """ Choose a move depending on MCTS or not """
-        print("mcts:{}".format(self.mcts))
-        # TODO figure out how mcts work
-        if self.mcts:
-            action_scores, action = self.mcts.search(self.board, player, competitive=competitive)
 
+        if self.mcts:
+            print("[INFO] Using mcts method")
+            action_scores, action = self.mcts.search(self.board, player, competitive=competitive)
+            print("[INFO] Finish mcts search")
         else:
             feature_maps = player.extractor(state)
             _, probs = player.predict(state)
@@ -65,9 +65,7 @@ class Game:
 
             action_scores = np.zeros((self.gobang_size ** 2))
             action_scores[action] = 1
-        print("ENTER")
         state, reward, done = self.board.step(action)
-        print("I print done:{}".format(done))
         return state, reward, done, action_scores, action
 
     def __call__(self):
@@ -83,13 +81,11 @@ class Game:
         comp = False
 
         while not done:
-            print("moves:{}".format(moves))
             ## Prevent game from cycling
             if moves > MOVE_LIMIT:
                 reward = 0
                 if self.opponent:
-                    print("[EVALUATION] Match %d done in eval after max move, draw"
-                          % self.id)
+                    print("[EVALUATION] Match %d done in eval after max move, draw" % self.id)
                     return pickle.dumps([reward])
                 return pickle.dumps((dataset, reward))
 
@@ -113,8 +109,8 @@ class Game:
                 print("[INFO] PLAY")
                 new_state, reward, done, probs, action = self._play(
                     state, self.player, competitive=comp)
-                print("[INFO] SWAP")
                 self._swap_color()
+                print("[INFO] SWAP COLOR")
                 dataset.append((state.cpu().data.numpy(), probs, self.player_color, action))
                 state = new_state
                 moves += 1
@@ -125,7 +121,6 @@ class Game:
             print("[EVALUATION] Match %d done in eval after %d moves, winner %s"
                   % (self.id, moves, "black" if reward == 0 else "white"))
             return pickle.dumps([reward])
-
         return pickle.dumps((dataset, reward))
 
     def solo_play(self, move=None):

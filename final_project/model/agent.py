@@ -2,7 +2,7 @@ import os
 from .resnet import ResNet
 from .value import ValueNet
 from .policy import PolicyNet
-from model.config import *
+from utils.config import *
 
 class Player:
     def __init__(self):

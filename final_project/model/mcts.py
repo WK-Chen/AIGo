@@ -1,12 +1,9 @@
-import sys
-
-
 import numpy as np
 import threading
 from collections import OrderedDict
 from numba import jit
 from copy import deepcopy
-from model.config import *
+from utils.config import *
 from utils.utils import sample_rotation
 
 
@@ -100,17 +97,15 @@ class EvaluatorThread(threading.Thread):
                 ## Predict the feature_maps, policy and value
                 states = torch.tensor(np.array(list(self.eval_queue.values()))[0:max_len],
                                       dtype=torch.float, device=DEVICE)
-                v, probas = self.player.predict(states)
-
+                v, probs = self.player.predict(states)
                 ## Replace the state with the result in the eval_queue
                 ## and notify all the threads that the result are available
                 for idx, i in zip(keys, range(max_len)):
                     del self.eval_queue[idx]
-                    self.result_queue[idx] = (probas[i].cpu().data.numpy(), v[i])
+                    self.result_queue[idx] = (probs[i].cpu().data.numpy(), v[i])
 
                 self.condition_eval.notifyAll()
             self.condition_eval.release()
-
 
 class SearchThread(threading.Thread):
 
@@ -136,9 +131,8 @@ class SearchThread(threading.Thread):
         ## Traverse the tree until leaf
         while not current_node.is_leaf() and not done:
             ## Select the action that maximizes the PUCT algorithm
-            current_node = current_node.childrens[_opt_select( \
-                np.array([[node.q, node.n, node.p] \
-                          for node in current_node.childrens]))]
+            current_node = current_node.childrens[_opt_select(np.array([[node.q, node.n, node.p]
+                                                                        for node in current_node.childrens]))]
 
             ## Virtual loss since multithreading
             self.lock.acquire()
@@ -146,7 +140,6 @@ class SearchThread(threading.Thread):
             self.lock.release()
 
             state, _, done = game.step(current_node.move)
-
         if not done:
 
             ## Add current leaf state with random dihedral transformation
@@ -189,7 +182,7 @@ class SearchThread(threading.Thread):
                 current_node.update(v)
                 current_node = current_node.parent
             self.lock.release()
-
+        # print("SEARCH FINISH")
 
 class MCTS:
     def __init__(self):
@@ -228,7 +221,6 @@ class MCTS:
         Search the best moves through the game tree with
         the policy and value network to update node statistics
         """
-
         ## Locking for thread synchronization
         condition_eval = threading.Condition()
         condition_search = threading.Condition()
@@ -247,22 +239,23 @@ class MCTS:
                 threads.append(SearchThread(self, current_game, eval_queue, result_queue, idx,
                                             lock, condition_search, condition_eval))
                 threads[-1].start()
+
             for thread in threads:
                 thread.join()
-        evaluator.join()
+        evaluator.join(timeout=1)
 
         ## Create the visit count vector
-        action_scores = np.zeros((current_game.board_size ** 2 + 1,))
+        action_scores = np.zeros((current_game.board_size ** 2))
         for node in self.root.childrens:
             action_scores[node.move] = node.n
 
         ## Pick the best move
-        final_move, final_probas = self._draw_move(action_scores, competitive=competitive)
+        final_move, final_probs = self._draw_move(action_scores, competitive=competitive)
 
         ## Advance the root to keep the statistics of the childrens
         for idx in range(len(self.root.childrens)):
             if self.root.childrens[idx].move == final_move:
                 break
         self.root = self.root.childrens[idx]
-
-        return final_probas, final_move
+        # print("[INFO] final_probs {} ; {}".format(final_probs, final_move))
+        return final_probs, final_move

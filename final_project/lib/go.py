@@ -1,17 +1,8 @@
-from copy import deepcopy
 import numpy as np
 import sys
 import six
-from model.config import HISTORY
+from utils.config import HISTORY
 from lib.board import Board
-
-
-def _pass_action(board_size):
-    return board_size ** 2
-
-
-def _resign_action(board_size):
-    return board_size ** 2 + 1
 
 
 def _action_to_coord(board, a):
@@ -29,7 +20,6 @@ def _format_state(history, player_color, board_size):
     state_history = np.concatenate((history[0], history[1]), axis=0)
     to_play = np.full((1, board_size, board_size), player_color - 1)
     final_state = np.concatenate((state_history, to_play), axis=0)
-    print("Refresh state!")
     return final_state
 
 def stone_other(player_color):
@@ -118,5 +108,4 @@ class GobangEnv():
         assert self.board.is_terminal
         self.done = True
         reward = self.get_reward(winner)
-        print("Here I am")
         return _format_state(self.history, self.player_color, self.board_size), reward, True
