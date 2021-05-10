@@ -11,7 +11,7 @@ class PolicyNet(nn.Module):
         self.logsofmax = nn.LogSoftmax(dim=1)
         self.linear = nn.Linear(outplanes - 1, outplanes)
 
-    def foward(self, x):
+    def forward(self, x):
         x = F.relu(self.bn(self.conv(x)))
         x = x.view(-1, self.outplanes - 1)
         x = self.linear(x)

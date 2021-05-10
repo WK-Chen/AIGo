@@ -1,6 +1,6 @@
 import timeit
 from .play import play
-from ..utils.config import *
+from model.config import *
 
 
 def evaluate(player, new_player):

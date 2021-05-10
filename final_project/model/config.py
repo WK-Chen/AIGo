@@ -18,9 +18,9 @@ MCTS_PARALLEL = 4
 ##### GLOBAL
 
 ## Size of the Go board
-GOBAN_SIZE = 9
+GOBANG_SIZE = 9
 ## Number of move to end a game
-MOVE_LIMIT = GOBAN_SIZE ** 2 * 2.5
+MOVE_LIMIT = GOBANG_SIZE ** 2
 ## Maximum ratio that can be replaced in the rotation buffer
 MAX_REPLACEMENT = 0.4
 ## Number of last states to keep
@@ -61,7 +61,7 @@ OUTPLANES_MAP = 10
 ## Shape of the input state
 INPLANES = (HISTORY + 1) * 2 + 1
 ## Probabilities for all moves + pass
-OUTPLANES = (GOBAN_SIZE ** 2) + 1
+OUTPLANES = (GOBANG_SIZE ** 2) + 1
 ## Number of residual blocks
 BLOCKS = 10
 ## Number of training step before evaluating

@@ -1,15 +1,14 @@
 import sys
-sys.path.append('..')
+
+
 import numpy as np
-import torch
 import threading
-import time
-import random
 from collections import OrderedDict
 from numba import jit
 from copy import deepcopy
-from ..utils.config import *
-from ..utils.utils import _prepare_state, sample_rotation
+from model.config import *
+from utils.utils import sample_rotation
+
 
 @jit
 def _opt_select(nodes, c_puct=C_PUCT):
@@ -38,6 +37,7 @@ def dirichlet_noise(probas):
                  EPS * np.random.dirichlet(np.full(dim, ALPHA))
     return new_probas
 
+
 class Node:
     def __init__(self, parent=None, prob=None, move=None):
         """
@@ -50,7 +50,7 @@ class Node:
         self.n = 0
         self.w = 0
         self.q = 0
-        self.children = []
+        self.childrens = []
         self.parent = parent
         self.move = move
 
@@ -68,7 +68,7 @@ class Node:
     def expand(self, probas):
         """ Create a child node for every non-zero move probability """
 
-        self.childrens = [Node(parent=self, move=idx, proba=probas[idx])
+        self.childrens = [Node(parent=self, move=idx, prob=probas[idx])
                           for idx in range(probas.shape[0]) if probas[idx] > 0]
 
 

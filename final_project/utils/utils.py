@@ -2,14 +2,13 @@ import os
 import numpy as np
 import random
 import torch
-from models.agent import Player
-from .config import *
+from model.agent import Player
+from model.config import *
 
 
 def _prepare_state(state):
     """
-    Transform the numpy state into a PyTorch tensor with cuda
-    if available
+    Transform the numpy state into a PyTorch tensor with cuda if available
     """
 
     x = torch.from_numpy(np.array([state]))
@@ -40,8 +39,7 @@ def get_version(folder_path, version):
 def load_player(folder, version):
     """ Load a player given a folder and a version """
 
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), \
-                        '..', 'saved_models')
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'saved_models')
     if folder == -1:
         folders = os.listdir(path)
         folders.sort()
@@ -63,7 +61,7 @@ def load_player(folder, version):
 def get_player(current_time, version):
     """ Load the models of a specific player """
 
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), \
+    path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                         '..', 'saved_models', str(current_time))
     try:
         mod = os.listdir(path)
@@ -93,7 +91,7 @@ def sample_rotation(state, num=8):
     boards = (HISTORY + 1) * 2  ## Number of planes to rotate
 
     for idx in range(num):
-        new_state = np.zeros((boards + 1, GOBAN_SIZE, GOBAN_SIZE,))
+        new_state = np.zeros((boards + 1, GOBANG_SIZE, GOBANG_SIZE,))
         new_state[:boards] = state[:boards]
 
         ## Apply the transformations in the tuple defining how to get
@@ -121,3 +119,15 @@ def formate_state(state, probas, winner):
     probas = np.repeat(probas, 8, axis=0)
     winner = np.full((8, 1), winner)
     return state, probas, winner
+
+def initialize_weights(net):
+    for m in net.modules():
+        if isinstance(m, nn.Conv2d):
+            m.weight.data.normal_(0, 0.02)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.ConvTranspose2d):
+            m.weight.data.normal_(0, 0.02)
+            m.bias.data.zero_()
+        elif isinstance(m, nn.Linear):
+            m.weight.data.normal_(0, 0.02)
+            m.bias.data.zero_()

@@ -1,3 +1,5 @@
+import argparse
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -31,20 +33,22 @@ class Block(nn.Module):
         return out
 
 
-# TODO fix 64
 class ResNet(nn.Module):
-    def __init__(self, block, num_block):
+    def __init__(self, inplanes, outplanes, config=None):
+        """
+        inplanes: Shape of the input state
+        INPLANES = (HISTORY + 1) * 2 + 1
+        outplanes: Probabilities for all moves
+        """
         super(ResNet, self).__init__()
-        self.BLOCKS = num_block
+        self.BLOCKS = config.num_blocks if config is not None else 9
         self.in_planes = 64
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3,
+        self.conv1 = nn.Conv2d(inplanes, outplanes, kernel_size=3,
                                stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
+        self.bn1 = nn.BatchNorm2d(outplanes)
 
         for block in range(self.BLOCKS):
-            setattr(self, "res{}".format(block), Block(64, 64))
-        # TODO fix self.linear
-        # self.linear = nn.Linear(512 * block.expansion, num_classes)
+            setattr(self, "res{}".format(block), Block(outplanes, outplanes))
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
@@ -55,9 +59,33 @@ class ResNet(nn.Module):
         return out
 
 
-def ResNet9():
-    return ResNet(Block, 9)
+def ResNet9(config):
+    return ResNet(config.inplanes, config.outplanes, config)
 
 
-def ResNet19():
-    return ResNet(Block, 19)
+def ResNet19(config):
+    return ResNet(config.inplanes, config.outplanes, config)
+
+"""
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--inplanes", default=3, type=int,
+        help="Number of the input states"
+    )
+    parser.add_argument(
+        "--outplanes", default=81, type=int,
+        help="Number of all moves"
+    )
+    parser.add_argument(
+        "--num_blocks", default=9, type=int,
+        help="Design the number of blocks in Resnet"
+    )
+    config = parser.parse_args()
+    model = ResNet9(config)
+    for name, parameters in model.named_parameters():
+        print(name, ':', parameters.size())
+    torch.save(model.state_dict(), '../savedmodels/raw.pkl')
+
+"""
+# main()

@@ -1,6 +1,6 @@
 import multiprocessing
 import multiprocessing.pool
-from .game import Game
+from lib.game import Game
 
 
 class NoDaemonProcess(multiprocessing.Process):
@@ -65,6 +65,7 @@ def create_matches(player, opponent=None, cores=1, match_number=10):
         game_manager.start()
 
     for game_id in range(match_number):
+        # NOTE here is where a game start
         queue.put(Game(player, game_id, opponent=opponent))
 
     for _ in range(cores):

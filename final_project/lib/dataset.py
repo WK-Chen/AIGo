@@ -1,7 +1,6 @@
 import numpy as np
-import timeit
-from torch.utils.data import Dataset, DataLoader
-from ..utils.config import *
+from torch.utils.data import Dataset
+from model.config import *
 from ..utils import utils
 
 

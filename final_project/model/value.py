@@ -12,7 +12,7 @@ class ValueNet(nn.Module):
         self.linear1 = nn.Linear(outplanes - 1, 256)
         self.linear2 = nn.Linear(256, 1)
 
-    def foward(self, x):
+    def forward(self, x):
         x = F.relu(self.bn(self.conv(x)))
         x = x.view(-1, self.outplanes - 1)
         x = F.relu(self.linear1(x))

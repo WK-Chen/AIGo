@@ -2,10 +2,10 @@ import pickle
 import time
 import timeit
 from copy import deepcopy
-from ..utils.config import *
+from model.config import *
 from pymongo import MongoClient
-from ..utils.utils import get_player, load_player, _prepare_state
-from .process import GameManager, create_matches
+from ..utils.utils import get_player, load_player
+from .process import create_matches
 
 
 def self_play(current_time, loaded_version):

@@ -1,15 +1,15 @@
 import numpy as np
 import pickle
 import time
-from .lib.process import MyPool
-from .lib.dataset import SelfPlayDataset
-from .lib.evaluate import evaluate
-from .utils.utils import load_player
+from lib.process import MyPool
+from lib.dataset import SelfPlayDataset
+from lib.evaluate import evaluate
+from utils.utils import load_player
 from copy import deepcopy
 from pymongo import MongoClient
 from torch.utils.data import DataLoader
-from .utils.config import *
-from .model.agent import Player
+from model.config import *
+from model.agent import Player
 
 
 class AlphaLoss(torch.nn.Module):
