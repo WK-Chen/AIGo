@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import pickle
 from utils.config import *
@@ -53,9 +54,9 @@ class Game:
         """ Choose a move depending on MCTS or not """
 
         if self.mcts:
-            print("[INFO] Using mcts method")
+            logging.info("Using mcts method")
             action_scores, action = self.mcts.search(self.board, player, competitive=competitive)
-            print("[INFO] Finish mcts search")
+            logging.debug("Finish mcts search")
         else:
             feature_maps = player.extractor(state)
             _, probs = player.predict(state)
@@ -85,7 +86,7 @@ class Game:
             if moves > MOVE_LIMIT:
                 reward = 0
                 if self.opponent:
-                    print("[EVALUATION] Match %d done in eval after max move, draw" % self.id)
+                    logging.info("[EVALUATION] Match %d done in eval after max move, draw" % self.id)
                     return pickle.dumps([reward])
                 return pickle.dumps((dataset, reward))
 
@@ -104,19 +105,19 @@ class Game:
 
             ## For self-play
             else:
-                print("[INFO] START self-play")
+                logging.info("Starting self-play")
                 state = _prepare_state(state)
-                print("[INFO] PLAY")
+                logging.debug("Play")
                 new_state, reward, done, probs, action = self._play(
                     state, self.player, competitive=comp)
                 self._swap_color()
-                print("[INFO] SWAP COLOR")
+                logging.debug("Swap color")
                 dataset.append((state.cpu().data.numpy(), probs, self.player_color, action))
                 state = new_state
                 moves += 1
 
-        print("[INFO] Finish one match")
-        ## Pickle the result because multiprocessing
+        logging.info("Finish one match")
+        # Pickle the result because multiprocessing
         if self.opponent:
             print("[EVALUATION] Match %d done in eval after %d moves, winner %s"
                   % (self.id, moves, "black" if reward == 0 else "white"))

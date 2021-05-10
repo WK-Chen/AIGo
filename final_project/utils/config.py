@@ -8,11 +8,11 @@ CUDA = torch.cuda.is_available()
 # Dtype of the tensors depending on CUDA
 DEVICE = torch.device("cuda") if CUDA else torch.device("cpu")
 # Number of self-play parallel games
-PARALLEL_SELF_PLAY = 2
+PARALLEL_SELF_PLAY = 1
 # Number of evaluation parallel games
-PARALLEL_EVAL = 3
+PARALLEL_EVAL = 10
 # MCTS parallel
-MCTS_PARALLEL = 4
+MCTS_PARALLEL = 1
 
 
 # GLOBAL
@@ -24,7 +24,7 @@ MOVE_LIMIT = GOBANG_SIZE ** 2
 # Maximum ratio that can be replaced in the rotation buffer
 MAX_REPLACEMENT = 0.4
 # Number of last states to keep
-HISTORY = 2
+HISTORY = 4
 # Learning rate
 LR = 0.01
 # Number of MCTS simulation
@@ -58,7 +58,7 @@ BATCH_SIZE = 64
 # Number of channels of the output feature maps
 OUTPLANES_MAP = 10
 # Shape of the input state
-INPLANES = (HISTORY + 1) * 2
+INPLANES = (HISTORY + 1) * 2 + 1
 # Probabilities for all moves
 OUTPLANES = (GOBANG_SIZE ** 2)
 # Number of residual blocks

@@ -3,6 +3,7 @@ from .resnet import ResNet
 from .value import ValueNet
 from .policy import PolicyNet
 from utils.config import *
+import logging
 
 class Player:
     def __init__(self):
@@ -16,9 +17,9 @@ class Player:
         """ Predict the probabilities and the winner from a given state """
 
         feature_maps = self.extractor(state)
-        winner = self.value_net(feature_maps)
+        value = self.value_net(feature_maps)
         probs = self.policy_net(feature_maps)
-        return winner, probs
+        return value, probs
 
     def save_models(self, state, current_time):
         """ Save the models """
@@ -38,12 +39,11 @@ class Player:
         state['model'] = model.state_dict()
         torch.save(state, filename)
 
-    def load_models(self, path, models):
+    def load_models(self, model_path):
         """ Load an already saved model """
 
         names = ["extractor", "policy_net", "value_net"]
-        for i in range(0, len(models)):
-            checkpoint = torch.load(os.path.join(path, models[i]))
-            model = getattr(self, names[i])
+        for name in names:
+            checkpoint = torch.load(os.path.join(model_path, name))
+            model = getattr(self, name)
             model.load_state_dict(checkpoint['model'])
-            return checkpoint

@@ -9,11 +9,11 @@ class PolicyNet(nn.Module):
         self.conv = nn.Conv2d(inplanes, 1, kernel_size=1)
         self.bn = nn.BatchNorm2d(1)
         self.logsofmax = nn.LogSoftmax(dim=1)
-        self.linear = nn.Linear(outplanes - 1, outplanes)
+        self.linear = nn.Linear(outplanes, outplanes)
 
     def forward(self, x):
         x = F.relu(self.bn(self.conv(x)))
-        x = x.view(-1, self.outplanes - 1)
+        x = x.view(-1, self.outplanes)
         x = self.linear(x)
         prob = self.logsofmax(x).exp()
         return prob

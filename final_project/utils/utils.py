@@ -3,7 +3,7 @@ import numpy as np
 import random
 from model.agent import Player
 from utils.config import *
-
+import logging
 
 def _prepare_state(state):
     """
@@ -15,12 +15,12 @@ def _prepare_state(state):
     return x
 
 
-def get_version(folder_path, version):
+def get_version(model_path, version):
     """ Either get the last versionration of
         the specific folder or verify it version exists """
 
     if int(version) == -1:
-        files = os.listdir(folder_path)
+        files = os.listdir(model_path)
         if len(files) > 0:
             all_version = list(map(lambda x: int(x.split('-')[0]), files))
             all_version.sort()
@@ -35,52 +35,27 @@ def get_version(folder_path, version):
     return file_version
 
 
-def load_player(folder, version):
-    """ Load a player given a folder and a version """
-
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'saved_models')
-    if folder == -1:
-        folders = os.listdir(path)
-        folders.sort()
-        if len(folders) > 0:
-            folder = folders[-1]
-        else:
-            return False, False
-    elif not os.path.isdir(os.path.join(path, str(folder))):
-        return False, False
-
-    folder_path = os.path.join(path, str(folder))
-    last_version = get_version(folder_path, version)
-    if not last_version:
-        return False, False
-
-    return get_player(folder, int(last_version))
-
-
-def get_player(current_time, version):
-    """ Load the models of a specific player """
-
-    path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                        '..', 'saved_models', str(current_time))
-    try:
-        mod = os.listdir(path)
-        models = list(filter(lambda model: (model.split('-')[0] == str(version)), mod))
-        models.sort()
-        if len(models) == 0:
-            return False, version
-    except FileNotFoundError:
-        return False, version
-
+def load_player(model_path):
+    """ Load a player given a model_path """
+    logging.debug("load_player()")
+    if not os.path.isdir(model_path):
+        logging.error("Model path incorrect !")
     player = Player()
-    checkpoint = player.load_models(path, models)
-    return player, checkpoint
+    player.load_models(model_path)
+    return player
+
+
+def get_player(model_path):
+    """ Initialize the model """
+    player = Player()
+    return player
 
 
 def sample_rotation(state, num=8):
     """ Apply a certain number of random transformation to the input state """
 
-    ## Create the dihedral group of a square with all the operations needed
-    ## in order to get the specific transformation and randomize their order
+    # Create the dihedral group of a square with all the operations needed
+    # in order to get the specific transformation and randomize their order
     dh_group = [(None, None), ((np.rot90, 1), None), ((np.rot90, 2), None),
                 ((np.rot90, 3), None), (np.fliplr, None), (np.flipud, None),
                 (np.flipud, (np.rot90, 1)), (np.fliplr, (np.rot90, 1))]
@@ -111,22 +86,10 @@ def sample_rotation(state, num=8):
 
 
 def formate_state(state, probas, winner):
-    """ Repeat the probas and the winner to make every example identical after
+    """ Repeat the probs and the winner to make every example identical after
         the dihedral rotation has been applied """
 
-    probas = np.reshape(probas, (1, probas.shape[0]))
-    probas = np.repeat(probas, 8, axis=0)
+    probs = np.reshape(probas, (1, probas.shape[0]))
+    probs = np.repeat(probas, 8, axis=0)
     winner = np.full((8, 1), winner)
     return state, probas, winner
-
-def initialize_weights(net):
-    for m in net.modules():
-        if isinstance(m, nn.Conv2d):
-            m.weight.data.normal_(0, 0.02)
-            m.bias.data.zero_()
-        elif isinstance(m, nn.ConvTranspose2d):
-            m.weight.data.normal_(0, 0.02)
-            m.bias.data.zero_()
-        elif isinstance(m, nn.Linear):
-            m.weight.data.normal_(0, 0.02)
-            m.bias.data.zero_()

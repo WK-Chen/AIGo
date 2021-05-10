@@ -1,5 +1,5 @@
 import numpy as np
-from collections import Counter
+from itertools import groupby
 
 
 class Board():
@@ -33,5 +33,43 @@ class Board():
 
     def check_terminal(self, player_color):
         # TODO code to judge whether player wins
-        self.is_terminal = True
+        """
+            基于当前玩家落子前，判断当前局面是否结束，一般来说若结束且非和棋都会返回-1.0，
+            因为现在轮到当前玩家落子了，但是游戏却已经结束了，结束前的最后一步一定是对手落子的，对手赢了，则返回-1
+            :param board:
+            :param 5:五子棋，5就等于五
+            :return:
+            """
+        win_cand = 2 if player_color == 1 else 1
+        for
+        h, w = self.board_size
+        for i in range(h):
+            for j in range(w):
+                hang = sum(self.board[i: min(i + 5, w), j])
+                if hang == 5:
+                    self.is_terminal = True
+                    return player_color
+                elif hang == -5:
+                    return True, -1.0
+                lie = sum(self.board[i, j: min(j + 5, h)])
+                if lie == 5:
+                    return True, 1.0
+                elif lie == -5:
+                    return True, -1.0
+                # 斜线有点麻烦
+                if i <= h - 5 and j <= w - 5:
+                    xie = sum([self.board[i + k, j + k] for k in range(5)])
+                    if xie == 5:
+                        return True, 1.0
+                    elif xie == -5:
+                        return True, -1.0
+                if i >= 5 - 1 and j <= w - 5:
+                    xie = sum([self.board[i - k, j + k] for k in range(5)])
+                    if xie == 5:
+                        return True, 1.0
+                    elif xie == -5:
+                        return True, -1.0
+        if np.where(self.board == 0)[0].shape[0] == 0:  # 棋盘满了，和棋
+            return True, 0.0
+        return False, 0.0
         return 1

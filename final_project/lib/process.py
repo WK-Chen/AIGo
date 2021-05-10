@@ -54,7 +54,6 @@ def create_matches(player, opponent=None, cores=1, match_number=10):
 
     queue = multiprocessing.JoinableQueue()
     results = multiprocessing.Queue()
-    game_results = []
 
     game_managers = [
         GameManager(queue, results)
