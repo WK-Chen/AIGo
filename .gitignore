@@ -1,7 +1,7 @@
 .idea
 /homework1/.idea
-/homework1/__pycache__/*
+/homework1/__pycache__/
 /final_project/.idea/
-/final_project/__pycache__/*
-/final_project/saved_models/*
-/final_project/data/*
+/final_project/__pycache__/
+/final_project/saved_models/
+/final_project/data/
