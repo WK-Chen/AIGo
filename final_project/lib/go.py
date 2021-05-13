@@ -3,6 +3,7 @@ import sys
 import six
 from utils.config import HISTORY
 from lib.board import Board
+import logging
 
 
 def _action_to_coord(board, a):
@@ -22,8 +23,10 @@ def _format_state(history, player_color, board_size):
     final_state = np.concatenate((state_history, to_play), axis=0)
     return final_state
 
+
 def stone_other(player_color):
     return player_color + 1 if player_color == 1 else player_color - 1
+
 
 class GobangEnv():
 
@@ -45,7 +48,7 @@ class GobangEnv():
     def get_legal_moves(self):
         """ Get all the legal moves and transform their coords into 1d """
 
-        legal_moves = self.board.get_legal_coords(self.player_color)
+        legal_moves = self.board.get_legal_coords()
         return legal_moves
 
     def _act(self, action, history):
@@ -95,6 +98,7 @@ class GobangEnv():
 
     def step(self, action):
         """ Perfoms an action and choose the winner if the 2 player have passed """
+        # logging.info("name:{} player:{} ACTION: {}".format(name, self.player_color, action))
 
         if not self.done:
             self._act(action, self.history)
@@ -108,4 +112,4 @@ class GobangEnv():
         assert self.board.is_terminal
         self.done = True
         reward = self.get_reward(winner)
-        return _format_state(self.history, self.player_color, self.board_size), reward, True
+        return _format_state(self.history, self.player_color, self.board_size), reward, self.done

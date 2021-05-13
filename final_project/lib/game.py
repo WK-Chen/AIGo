@@ -54,9 +54,9 @@ class Game:
         """ Choose a move depending on MCTS or not """
 
         if self.mcts:
-            logging.info("Using mcts method")
             action_scores, action = self.mcts.search(self.board, player, competitive=competitive)
-            logging.debug("Finish mcts search")
+            logging.debug("A mcts search has finished")
+
         else:
             feature_maps = player.extractor(state)
             _, probs = player.predict(state)
@@ -66,7 +66,10 @@ class Game:
 
             action_scores = np.zeros((self.gobang_size ** 2))
             action_scores[action] = 1
+
         state, reward, done = self.board.step(action)
+        if done:
+            logging.info("Finish a play: {}".format(self.board.board.board))
         return state, reward, done, action_scores, action
 
     def __call__(self):
@@ -86,7 +89,7 @@ class Game:
             if moves > MOVE_LIMIT:
                 reward = 0
                 if self.opponent:
-                    logging.info("[EVALUATION] Match %d done in eval after max move, draw" % self.id)
+                    logging.warning("[EVALUATION] %d :Reach move limit, black lose" % self.id)
                     return pickle.dumps([reward])
                 return pickle.dumps((dataset, reward))
 
@@ -105,16 +108,16 @@ class Game:
 
             ## For self-play
             else:
-                logging.info("Starting self-play")
+                logging.debug("Starting self-play")
                 state = _prepare_state(state)
-                logging.debug("Play")
                 new_state, reward, done, probs, action = self._play(
                     state, self.player, competitive=comp)
                 self._swap_color()
-                logging.debug("Swap color")
+                # logging.info("Move {}, Swap color".format(moves))
                 dataset.append((state.cpu().data.numpy(), probs, self.player_color, action))
                 state = new_state
                 moves += 1
+
 
         logging.info("Finish one match")
         # Pickle the result because multiprocessing

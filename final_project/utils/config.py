@@ -12,7 +12,7 @@ PARALLEL_SELF_PLAY = 1
 # Number of evaluation parallel games
 PARALLEL_EVAL = 10
 # MCTS parallel
-MCTS_PARALLEL = 1
+MCTS_PARALLEL = 2
 
 
 # GLOBAL
@@ -52,7 +52,7 @@ TEMPERATURE_MOVE = 5
 # TRAINING
 
 # Number of moves to consider when creating the batch
-MOVES = 2000
+MOVES = 100
 # Number of mini-batch before evaluation during training
 BATCH_SIZE = 64
 # Number of channels of the output feature maps

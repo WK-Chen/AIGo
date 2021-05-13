@@ -13,8 +13,8 @@ class SelfPlayDataset(Dataset):
     def __init__(self):
         """ Instanciate a dataset """
 
-        self.states = np.zeros((MOVES, (HISTORY + 1) * 2 + 1, GOBAN_SIZE, GOBAN_SIZE))
-        self.plays = np.zeros((MOVES, GOBAN_SIZE ** 2 + 1))
+        self.states = np.zeros((MOVES, (HISTORY + 1) * 2 + 1, GOBANG_SIZE, GOBANG_SIZE))
+        self.plays = np.zeros((MOVES, GOBANG_SIZE ** 2))
         self.winners = np.zeros(MOVES)
         self.current_len = 0
 

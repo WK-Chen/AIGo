@@ -42,12 +42,10 @@ def self_play(model_path):
         # Create the self-play match queue of processes
         queue, results = create_matches(player, cores=PARALLEL_SELF_PLAY, match_number=SELF_PLAY_MATCH)
 
-        logging.info("Starting to save fresh games")
         start_time = timeit.default_timer()
 
         try:
             queue.join()
-            logging.info("Queue Finished")
             # Collect the results and save them
             logging.info("Saving data")
             for _ in range(SELF_PLAY_MATCH):
@@ -68,7 +66,7 @@ def play(player, opponent):
     """ Game between two players, for evaluation """
 
     ## Create the evaluation match queue of processes
-    queue, results = create_matches(deepcopy(player), opponent=deepcopy(opponent), \
+    queue, results = create_matches(deepcopy(player), opponent=deepcopy(opponent),
                                     cores=PARALLEL_EVAL, match_number=EVAL_MATCHS)
     try:
         queue.join()

@@ -3,12 +3,13 @@ import time
 import signal
 import os
 from lib.play import play, self_play
+# from train import train
 from lib.process import MyPool
 import logging
 logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s',
-        datefmt='%m-%d %H:%M')
+        datefmt='%m-%d %H:%M:%S')
 
 
 def main(model_path):
@@ -22,6 +23,14 @@ def main(model_path):
     logging.info("Starting")
     try:
         self_play_proc = pool.apply_async(self_play, args=(model_path,))
+
+        # train_proc = pool.apply_async(train, args=(current_time, version,))
+
+        ## Comment one line or the other to get the stack trace
+        ## Must add a loooooong timer otherwise signals are not caught
+        # self_play_proc.get(60000000)
+        # train_proc.get(60000000)
+
     except KeyboardInterrupt:
         pool.terminate()
     else:
