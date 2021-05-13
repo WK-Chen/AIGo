@@ -21,29 +21,31 @@ class Player:
         probs = self.policy_net(feature_maps)
         return value, probs
 
-    def save_models(self, state, current_time):
+    def save_models(self, state, model_path):
         """ Save the models """
 
         for model in ["extractor", "policy_net", "value_net"]:
-            self._save_checkpoint(getattr(self, model), model, state, current_time)
+            self._save_checkpoint(getattr(self, model), model, state, model_path)
 
-    def _save_checkpoint(self, model, filename, state, current_time):
+    def _save_checkpoint(self, model, filename, state, model_path):
         """ Save a checkpoint of the models """
 
-        dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                '..', 'saved_models', current_time)
+        dir_path = os.path.join("./saved_models", model_path)
         if not os.path.exists(dir_path):
+            logging.info("creating new directory")
             os.makedirs(dir_path)
 
-        filename = os.path.join(dir_path, "{}-{}.pth.tar".format(state['version'], filename))
+        filename = os.path.join(dir_path, "{}_{}.pth.tar".format(state['version'], filename))
         state['model'] = model.state_dict()
+        logging.info("saving")
         torch.save(state, filename)
 
-    def load_models(self, model_path):
+    def load_models(self, model_path, step):
         """ Load an already saved model """
 
-        names = ["extractor", "policy_net", "value_net"]
-        for name in names:
-            checkpoint = torch.load(os.path.join(model_path, name))
+        for name in ["extractor", "policy_net", "value_net"]:
+            path = model_path + "/step_{}_{}.pth.tar".format(step, name)
+            checkpoint = torch.load(path)
             model = getattr(self, name)
             model.load_state_dict(checkpoint['model'])
+            return checkpoint

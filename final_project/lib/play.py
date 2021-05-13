@@ -7,7 +7,7 @@ from utils.config import *
 from utils.utils import get_player, load_player
 from .process import create_matches
 
-def self_play(model_path):
+def self_play(model_path, step):
     """
     Used to create a learning dataset for the value and policy network.
     Play against itself and backtrack the winner to maximize winner moves
@@ -22,7 +22,7 @@ def self_play(model_path):
         logging.info("Loading Player")
         if model_path:
             logging.debug("model path is not none")
-            player = load_player(model_path)
+            player, _ = load_player(model_path, step)
             logging.info("Loaded a player from {}".format(model_path))
         else:
             logging.info("Initializing a player")
@@ -52,7 +52,7 @@ def self_play(model_path):
                 result = results.get()
                 if result:
                     with open("data/id_{}".format(game_id), 'wb') as f:
-                        pickle.dump(result, f)
+                        f.write(result)
                     game_id += 1
             logging.info("Data saved")
             final_time = timeit.default_timer() - start_time
@@ -65,21 +65,22 @@ def self_play(model_path):
 def play(player, opponent):
     """ Game between two players, for evaluation """
 
-    ## Create the evaluation match queue of processes
+    # Create the evaluation match queue of processes
+    logging.info("Staring to evaluate")
     queue, results = create_matches(deepcopy(player), opponent=deepcopy(opponent),
                                     cores=PARALLEL_EVAL, match_number=EVAL_MATCHS)
     try:
         queue.join()
 
-        ## Gather the results and push them into a result queue
-        ## that will be sent back to the evaluation process
-        print("[EVALUATION] Starting to fetch fresh games")
+        # Gather the results and push them into a result queue
+        # that will be sent back to the evaluation process
+        logging.info("Starting to fetch fresh games")
         final_result = []
         for idx in range(EVAL_MATCHS):
             result = results.get()
             if result:
                 final_result.append(pickle.loads(result))
-        print("[EVALUATION] Done fetching")
+        logging.info("Done fetching")
     finally:
         queue.close()
         results.close()

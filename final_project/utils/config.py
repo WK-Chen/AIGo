@@ -10,7 +10,8 @@ DEVICE = torch.device("cuda") if CUDA else torch.device("cpu")
 # Number of self-play parallel games
 PARALLEL_SELF_PLAY = 1
 # Number of evaluation parallel games
-PARALLEL_EVAL = 10
+# FIXME 10
+PARALLEL_EVAL = 1
 # MCTS parallel
 MCTS_PARALLEL = 2
 
@@ -52,7 +53,7 @@ TEMPERATURE_MOVE = 5
 # TRAINING
 
 # Number of moves to consider when creating the batch
-MOVES = 100
+MOVES = 500
 # Number of mini-batch before evaluation during training
 BATCH_SIZE = 64
 # Number of channels of the output feature maps
@@ -64,7 +65,9 @@ OUTPLANES = (GOBANG_SIZE ** 2)
 # Number of residual blocks
 BLOCKS = 9
 # Number of training step before evaluating
-TRAIN_STEPS = 6 * BATCH_SIZE
+# TRAIN_STEPS = 6 * BATCH_SIZE
+# FIXME tmp use
+TRAIN_STEPS = 2
 # Optimizer
 ADAM = False
 # Learning rate annealing factor
@@ -76,10 +79,10 @@ LOSS_TICK = BATCH_SIZE // 4
 # Refresh the dataset
 REFRESH_TICK = BATCH_SIZE
 
-
 # EVALUATION
 
 # Number of matches against its old version to evaluate the newly trained network
-EVAL_MATCHS = 20
+# FIXME 1
+EVAL_MATCHS = 1
 # Threshold to keep the new neural net
 EVAL_THRESH = 0.55

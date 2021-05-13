@@ -83,7 +83,6 @@ class Game:
         dataset = []
         moves = 0
         comp = False
-
         while not done:
             ## Prevent game from cycling
             if moves > MOVE_LIMIT:
@@ -101,9 +100,9 @@ class Game:
             ## For evaluation
             if self.opponent:
                 state, reward, done, _, action = self._play(
-                    _prepare_state(state), self.player, self.opponent.passed, competitive=True)
+                    _prepare_state(state), self.player, competitive=True)
                 state, reward, done, _, action = self._play(
-                    _prepare_state(state), self.opponent, self.player.passed, competitive=True)
+                    _prepare_state(state), self.opponent, competitive=True)
                 moves += 2
 
             ## For self-play
@@ -122,9 +121,10 @@ class Game:
         logging.info("Finish one match")
         # Pickle the result because multiprocessing
         if self.opponent:
-            print("[EVALUATION] Match %d done in eval after %d moves, winner %s"
+            logging.info("[EVALUATION] Match %d done in eval after %d moves, winner %s"
                   % (self.id, moves, "black" if reward == 0 else "white"))
             return pickle.dumps([reward])
+        # print(dataset, reward)
         return pickle.dumps((dataset, reward))
 
     def solo_play(self, move=None):

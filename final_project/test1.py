@@ -1,13 +1,7 @@
 import collections
-import random
-def a(dict):
-    dict.append(5 * random.randint(1,5))
-    print(dic)
-def b(dict):
-    dic.append(6)
+import re
+import os
+import numpy as np
 
-dic = list()
-b(dic)
-
-a(dic)
-
+x = np.zeros(100)
+print(x.shape)

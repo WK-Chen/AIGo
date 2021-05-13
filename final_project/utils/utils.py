@@ -35,14 +35,14 @@ def get_version(model_path, version):
     return file_version
 
 
-def load_player(model_path):
+def load_player(model_path, step):
     """ Load a player given a model_path """
-    logging.debug("load_player()")
+    logging.info("load_player()")
     if not os.path.isdir(model_path):
         logging.error("Model path incorrect !")
     player = Player()
-    player.load_models(model_path)
-    return player
+    checkpoint = player.load_models(model_path, step)
+    return player, checkpoint
 
 
 def get_player(model_path):
@@ -51,9 +51,9 @@ def get_player(model_path):
     return player
 
 
-def sample_rotation(state, num=8):
+def sample_rotation(state, num=1):
     """ Apply a certain number of random transformation to the input state """
-
+    """Attention num=1 should not be changed, it may make errors"""
     # Create the dihedral group of a square with all the operations needed
     # in order to get the specific transformation and randomize their order
     dh_group = [(None, None), ((np.rot90, 1), None), ((np.rot90, 2), None),
