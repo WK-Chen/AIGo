@@ -35,17 +35,18 @@ def get_version(model_path, version):
     return file_version
 
 
-def load_player(model_path, step):
+def load_player(round):
     """ Load a player given a model_path """
     logging.info("load_player()")
-    if not os.path.isdir(model_path):
-        logging.error("Model path incorrect !")
+    path = './saved_models/{}'.format(round)
+    if not os.path.isdir(path):
+        logging.error("Model path({}) incorrect !".format(path))
     player = Player()
-    checkpoint = player.load_models(model_path, step)
+    checkpoint = player.load_models(path)
     return player, checkpoint
 
 
-def get_player(model_path):
+def get_player():
     """ Initialize the model """
     player = Player()
     return player

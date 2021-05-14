@@ -240,6 +240,6 @@ def train(model_path, step, data_path='./data'):
         if len(batch_loss) > 0:
             logging.info("Average backward pass loss : {}, current lr: {}".format(
                 np.mean(batch_loss), lr))
-
+        break
 if __name__ == '__main__':
     train(model_path=None, step=0)

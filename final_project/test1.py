@@ -1,7 +1,5 @@
-import collections
-import re
-import os
-import numpy as np
+from tqdm import trange
 
-x = np.zeros(100)
-print(x.shape)
+list = [1]*100
+for i in trange(100):
+    print(i)

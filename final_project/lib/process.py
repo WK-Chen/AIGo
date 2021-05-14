@@ -1,7 +1,7 @@
 import multiprocessing
 import multiprocessing.pool
 from lib.game import Game
-
+from tqdm import tqdm
 
 class NoDaemonProcess(multiprocessing.Process):
     # make 'daemon' attribute always return False
@@ -49,25 +49,8 @@ class GameManager(multiprocessing.Process):
                 print("Game has thrown an error")
 
 
-def create_matches(player, opponent=None, cores=1, match_number=10):
-    """ Create the process queue """
-
-    queue = multiprocessing.JoinableQueue()
-    results = multiprocessing.Queue()
-
-    game_managers = [
-        GameManager(queue, results)
-        for _ in range(cores)
-    ]
-
-    for game_manager in game_managers:
-        game_manager.start()
-
-    for game_id in range(match_number):
-        # NOTE here is where a game start
-        queue.put(Game(player, game_id, opponent=opponent))
-
-    for _ in range(cores):
-        queue.put(None)
-
-    return queue, results
+def create_matches(player, opponent, match_number):
+    results = []
+    for game_id in tqdm(range(match_number)):
+        results.append(Game(player, game_id, opponent=opponent).__call__())
+    return results

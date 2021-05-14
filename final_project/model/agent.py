@@ -21,30 +21,30 @@ class Player:
         probs = self.policy_net(feature_maps)
         return value, probs
 
-    def save_models(self, state, model_path):
+    def save_models(self, state, round):
         """ Save the models """
 
         for model in ["extractor", "policy_net", "value_net"]:
-            self._save_checkpoint(getattr(self, model), model, state, model_path)
+            self._save_checkpoint(getattr(self, model), model, state, round)
 
-    def _save_checkpoint(self, model, filename, state, model_path):
+    def _save_checkpoint(self, model, filename, state, round):
         """ Save a checkpoint of the models """
 
-        dir_path = os.path.join("./saved_models", model_path)
+        dir_path = "./saved_models/{}".format(round)
         if not os.path.exists(dir_path):
             logging.info("creating new directory")
             os.makedirs(dir_path)
 
-        filename = os.path.join(dir_path, "{}_{}.pth.tar".format(state['version'], filename))
+        filename = os.path.join(dir_path, "{}.pth.tar".format(filename))
         state['model'] = model.state_dict()
         logging.info("saving")
         torch.save(state, filename)
 
-    def load_models(self, model_path, step):
+    def load_models(self, model_path):
         """ Load an already saved model """
 
         for name in ["extractor", "policy_net", "value_net"]:
-            path = model_path + "/step_{}_{}.pth.tar".format(step, name)
+            path = model_path + "/{}.pth.tar".format(name)
             checkpoint = torch.load(path)
             model = getattr(self, name)
             model.load_state_dict(checkpoint['model'])

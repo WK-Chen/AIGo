@@ -69,7 +69,7 @@ class Game:
 
         state, reward, done = self.board.step(action)
         if done:
-            logging.info("Finish a play: {}".format(self.board.board.board))
+            logging.debug("Finish a play: {}".format(self.board.board.board))
         return state, reward, done, action_scores, action
 
     def __call__(self):
@@ -96,8 +96,7 @@ class Game:
             if moves > TEMPERATURE_MOVE:
                 comp = True
 
-            # FIXME
-            ## For evaluation
+            # For evaluation
             if self.opponent:
                 state, reward, done, _, action = self._play(
                     _prepare_state(state), self.player, competitive=True)
@@ -105,7 +104,7 @@ class Game:
                     _prepare_state(state), self.opponent, competitive=True)
                 moves += 2
 
-            ## For self-play
+            # For self-play
             else:
                 logging.debug("Starting self-play")
                 state = _prepare_state(state)
@@ -117,12 +116,11 @@ class Game:
                 state = new_state
                 moves += 1
 
-
-        logging.info("Finish one match")
+        logging.debug("Finish one match")
         # Pickle the result because multiprocessing
         if self.opponent:
             logging.info("[EVALUATION] Match %d done in eval after %d moves, winner %s"
-                  % (self.id, moves, "black" if reward == 0 else "white"))
+                         % (self.id, moves, "black" if reward == 0 else "white"))
             return pickle.dumps([reward])
         # print(dataset, reward)
         return pickle.dumps((dataset, reward))
