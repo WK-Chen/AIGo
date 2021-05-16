@@ -14,7 +14,7 @@ logging.basicConfig(
 
 
 def main(round):
-    while True:
+    while round < 100:
         logging.info("Starting Round: {}".format(round))
         self_play(round)
         train(round)

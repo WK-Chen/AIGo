@@ -190,10 +190,15 @@ def train(round):
     if len(batch_loss) > 0:
         logging.info("Average backward pass loss : {}, current lr: {}".format(np.mean(batch_loss), lr))
 
-    pending_player = deepcopy(player)
-    result = evaluate(pending_player, best_player)
-    if result:
-        best_player = pending_player
-        logging.info("New version wins !")
+    if (round + 1) % 10 == 0:
+        pending_player = deepcopy(player)
+        result = evaluate(pending_player, best_player)
+        if result:
+            best_player = pending_player
+            logging.info("New version wins !")
+        else:
+            logging.info("New version lose !")
+    else:
+        best_player = deepcopy(player)
     state = create_state(lr, total_ite, optimizer)
     best_player.save_models(state, round + 1)

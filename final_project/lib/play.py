@@ -44,15 +44,15 @@ def self_play(round):
     for game_id in trange(SIMULATION_PER_ROUND):
         results.append(Game(player, game_id, opponent=None).__call__())
         if (game_id + 1) % 10 == 0:
-            logging.info("Collecting data")
+            logging.debug("Collecting data")
             for id, result in enumerate(results):
                 with open("data/{}/id_{}".format(round, count*10+id), 'wb') as f:
                     f.write(result)
             results = []
             count += 1
-            logging.info("Data collected")
+            logging.debug("Data collected")
     final_time = timeit.default_timer() - start_time
-    logging.info("Done saving in %.3f seconds, average duration:"
+    logging.debug("Done saving in %.3f seconds, average duration:"
                  " %.3f seconds" % (final_time, final_time / SIMULATION_PER_ROUND))
 
 

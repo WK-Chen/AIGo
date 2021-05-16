@@ -85,7 +85,7 @@ class Game:
         comp = False
         while not done:
             ## Prevent game from cycling
-            if moves > MOVE_LIMIT:
+            if moves >= MOVE_LIMIT:
                 reward = 0
                 if self.opponent:
                     logging.warning("[EVALUATION] %d :Reach move limit, black lose" % self.id)
