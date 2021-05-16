@@ -62,21 +62,7 @@ def play(player, opponent):
 
     # Create the evaluation match queue of processes
     logging.info("Staring to evaluate")
-    queue, results = create_matches(deepcopy(player), opponent=deepcopy(opponent),
-                                    cores=PARALLEL_EVAL, match_number=EVAL_MATCHS)
-    try:
-        queue.join()
-
-        # Gather the results and push them into a result queue
-        # that will be sent back to the evaluation process
-        logging.info("Starting to fetch fresh games")
-        final_result = []
-        for idx in range(EVAL_MATCHS):
-            result = results.get()
-            if result:
-                final_result.append(pickle.loads(result))
-        logging.info("Done fetching")
-    finally:
-        queue.close()
-        results.close()
-    return final_result
+    results = []
+    for game_id in trange(EVAL_MATCHS):
+        results.append(pickle.loads(Game(player, game_id, opponent=deepcopy(opponent)).__call__()))
+    return results

@@ -1,4 +1,7 @@
 import numpy as np
+import re
+import random
+import os
 import pickle
 import time
 from lib.process import MyPool
@@ -10,7 +13,6 @@ import logging
 from torch.utils.data import DataLoader
 from utils.config import *
 from model.agent import Player
-
 
 class AlphaLoss(torch.nn.Module):
     """
@@ -35,27 +37,25 @@ class AlphaLoss(torch.nn.Module):
         return total_error
 
 
-def fetch_new_games(collection, dataset, last_id, loaded_version=None):
+def fetch_new_games(dataset, round):
     """ Update the dataset with new games from the databse """
 
-    ## Fetch new games in reverse order so we add the newest games first
-    new_games = collection.find({"id": {"$gt": last_id}}).sort('_id', -1)
+    # Fetch new games in reverse order so we add the newest games first
     added_moves = 0
     added_games = 0
-    print("[TRAIN] Fetching: {} new games from the db".format(new_games.count()))
+    new_games = ["./data/{}/".format(round) + game for game in os.listdir("./data/{}".format(round))]
+    rand_list = [i for i in range(len(new_games))]
+    random.shuffle(rand_list)
 
-
-    for game in new_games:
-        number_moves = dataset.update(pickle.loads(game['game']))
+    i = 0
+    while added_moves < MOVES * MAX_REPLACEMENT:
+        with open(new_games[rand_list[i]], 'rb') as f:
+            number_moves = dataset.update(pickle.load(f))
         added_moves += number_moves
         added_games += 1
+        i += 1
 
-        ## You cant replace more than 40% of the dataset at a time
-        if added_moves >= MOVES * MAX_REPLACEMENT and not loaded_version:
-            break
-
-    print("[TRAIN] Last id: {}, added games: {}, added moves: {}".format(last_id, added_games, added_moves))
-    return last_id + added_games
+    logging.info("added games: {}, added moves: {}".format(added_games, added_moves))
 
 
 def train_epoch(player, optimizer, example, criterion):
@@ -63,7 +63,6 @@ def train_epoch(player, optimizer, example, criterion):
 
     optimizer.zero_grad()
     winner, probs = player.predict(example['state'])
-
     loss = criterion(winner, example['winner'], probs, example['move'])
     loss.backward()
     optimizer.step()
@@ -77,7 +76,7 @@ def update_lr(lr, optimizer, total_ite, lr_decay=LR_DECAY, lr_decay_ite=LR_DECAY
     if total_ite % lr_decay_ite != 0 or lr <= 0.0001:
         return lr, optimizer
 
-    print("[TRAIN] Decaying the learning rate !")
+    logging.info("Decaying the learning rate !")
     lr = lr * lr_decay
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
@@ -102,11 +101,10 @@ def collate_fn(example):
     state = []
     probs = []
     winner = []
-
     for ex in example:
-        state.extend(ex[0])
-        probs.extend(ex[1])
-        winner.extend(ex[2])
+        state.extend(ex[0][np.newaxis, :, :, :])
+        probs.extend(ex[1][np.newaxis, :])
+        winner.extend(np.array([ex[2]])[np.newaxis, :])
 
     state = torch.tensor(state, dtype=torch.float, device=DEVICE)
     probs = torch.tensor(probs, dtype=torch.float, device=DEVICE)
@@ -150,6 +148,7 @@ def train(round):
         optimizer = create_optimizer(player, lr, param=checkpoint['optimizer'])
         total_ite = checkpoint['total_ite']
         lr = checkpoint['lr']
+
     else:
         logging.info("Initializing a player")
         player = Player()
@@ -159,71 +158,42 @@ def train(round):
     best_player = deepcopy(player)
 
     # Wait before the circular before is full
-    while len(dataset) < MOVES:
-        last_id = fetch_new_games(data_path, dataset, last_id)
-        time.sleep(5)
+    logging.info("Creating dataset ...")
+    fetch_new_games(dataset, round)
 
-    logging.info("Circular buffer full !")
-    logging.info("Starting to train !")
     dataloader = DataLoader(dataset, collate_fn=collate_fn, batch_size=BATCH_SIZE, shuffle=True)
 
-    # Callback after the evaluation is done, must be a closure
-    def new_agent(result):
-        if result:
-            nonlocal version, pending_player, model_path, lr, total_ite, best_player
-            version += 1
-            state = create_state(version, lr, total_ite, optimizer)
-            best_player = pending_player
-            pending_player.save_models(state, str(version))
-            logging.info("New best player saved !")
-        else:
-            nonlocal last_id
-            # Force a new fetch in case the player didnt improve
-            last_id = fetch_new_games("./data", dataset, last_id)
+    logging.info("Starting to train !")
 
-    while True:
-        batch_loss = []
-        for batch_idx, (state, move, winner) in enumerate(dataloader):
-            running_loss = []
-            lr, optimizer = update_lr(lr, optimizer, total_ite)
+    batch_loss = []
+    for batch_idx, (state, move, winner) in enumerate(dataloader):
+        running_loss = []
+        lr, optimizer = update_lr(lr, optimizer, total_ite)
 
-            # Evaluate a copy of the current network asynchronously
-            if total_ite % TRAIN_STEPS == 0:
-                pending_player = deepcopy(player)
-                last_id = fetch_new_games("./data", dataset, last_id)
-
-                # Wait in case an evaluation is still going on
-                if pool:
-                    logging.info("Waiting for eval to end before re-eval")
-                    pool.close()
-                    pool.join()
-                pool = MyPool(1)
-                try:
-                    pool.apply_async(evaluate, args=(pending_player, best_player), callback=new_agent)
-                except Exception as e:
-                    pool.terminate()
-
-            example = {
+        # Evaluate a copy of the current network asynchronously
+        example = {
                 'state': state,
                 'winner': winner,
                 'move': move
-            }
-            loss = train_epoch(player, optimizer, example, criterion)
-            running_loss.append(loss)
+        }
+        loss = train_epoch(player, optimizer, example, criterion)
+        running_loss.append(loss)
 
-            ## Print running loss
-            if total_ite % LOSS_TICK == 0:
-                logging.info("Current iteration: {}, averaged loass: {}".format(
-                    total_ite, np.mean(running_loss)))
-                batch_loss.append(np.mean(running_loss))
-                running_loss = []
+        # Print running loss
+        if total_ite % LOSS_TICK == 0:
+            logging.info("Current iteration: {}, averaged loss: {}".format(
+                total_ite, np.mean(running_loss)))
+            batch_loss.append(np.mean(running_loss))
+            running_loss = []
+        total_ite += 1
 
-            ## Fetch new games
-            if total_ite % REFRESH_TICK == 0:
-                last_id = fetch_new_games("./data", dataset, last_id)
+    if len(batch_loss) > 0:
+        logging.info("Average backward pass loss : {}, current lr: {}".format(np.mean(batch_loss), lr))
 
-            total_ite += 1
-
-        if len(batch_loss) > 0:
-            logging.info("Average backward pass loss : {}, current lr: {}".format(
-                np.mean(batch_loss), lr))
+    pending_player = deepcopy(player)
+    result = evaluate(pending_player, best_player)
+    if result:
+        best_player = pending_player
+        logging.info("New version wins !")
+    state = create_state(lr, total_ite, optimizer)
+    best_player.save_models(state, round + 1)

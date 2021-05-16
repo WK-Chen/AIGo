@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from torch.utils.data import Dataset
 from utils.config import *
 from utils import utils
@@ -30,16 +31,20 @@ class SelfPlayDataset(Dataset):
     def update(self, game):
         """ Rotate the circular buffer to add new games at end """
 
-        number_moves = len(game[0])
+        moves = len(game[0])
+        rand_list = [i for i in range(moves)]
+        random.shuffle(rand_list)
+        rand_list = rand_list[:(len(rand_list) // 2)]
+        number_moves = len(rand_list)
         self.current_len = min(self.current_len + number_moves, MOVES)
 
         self.states = np.roll(self.states, number_moves, axis=0)
-        self.states[:number_moves] = np.vstack(tuple(game[0][i][0] for i in range(number_moves)))
+        self.states[:number_moves] = np.vstack(tuple(game[0][i][0] for i in rand_list))
         self.plays = np.roll(self.plays, number_moves, axis=0)
-        self.plays[:number_moves] = np.vstack(tuple(game[0][i][1] for i in range(number_moves)))
+        self.plays[:number_moves] = np.vstack(tuple(game[0][i][1] for i in rand_list))
 
         # Replace the player color with the end game result
-        players = np.array([game[0][i][2] for i in range(number_moves)])
+        players = np.array([game[0][i][2] for i in rand_list])
         players[np.where(players - 1 != game[1])] = -1
         players[np.where(players != -1)] = 1
 

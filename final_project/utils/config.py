@@ -51,7 +51,7 @@ TEMPERATURE_MOVE = 5
 
 # TRAINING
 # Number of simulated game generated per round
-SIMULATION_PER_ROUND = 1000
+SIMULATION_PER_ROUND = 50
 # Number of moves to consider when creating the batch
 MOVES = 500
 # Number of mini-batch before evaluation during training
