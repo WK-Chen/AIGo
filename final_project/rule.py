@@ -2,46 +2,47 @@ import sys
 import random
 import pygame
 from collections import namedtuple
+from utils.config import *
 
 # 具名元组声明
 Position = namedtuple('Position', ['x', 'y'])
 
 
 class Rule(object):
-    # 图片资源命名
-    background_filename = 'img/chessboard.png'
-    whiteBall_filename = 'img/whiteBall.png'
-    blackBall_filename = 'img/blackBall.png'
-    # 正式规格：上下左右空隙16像素，格间距20像素，将棋盘抽象成15*15矩阵
-    # top, left, space, lines = (16, 16, 20, 15)
-    # 测试规格：上下左右空间77像素，格间距20像素，将棋盘抽象成9*9矩阵
-    top, left, space, lines = (77, 77, 20, 9)
-    # 棋盘格子线颜色(黑)
-    color = (0, 0, 0)
+    def __init__(self, gobang_size=GOBANG_SIZE):
+        # 图片资源命名
+        self.background_filename = 'img/chessboard.png'
+        self.whiteBall_filename = 'img/whiteBall.png'
+        self.blackBall_filename = 'img/blackBall.png'
+        if gobang_size == 15:
+            self.top, self.left, self.space, self.lines = (16, 16, 20, 15)
+        elif gobang_size == 9:
+            self.top, self.left, self.space, self.lines = (77, 77, 20, 9)
+        else:
+            print("Wrong size")
+        # 棋盘格子线颜色(黑)
+        self.color = (0, 0, 0)
 
-    black_turn = True  # 黑子先手
-    ball_coord = []  # 记录黑子和白子逻辑位置
+        self.black_turn = True  # 黑子先手
+        self.ball_coord = []  # 记录黑子和白子逻辑位置
 
-    def __init__(self):
-        try:
-            # 图片资源加载
-            self.chessboard = pygame.image.load(self.background_filename)
-            # 保留透明底
-            self.whiteBall = pygame.image.load(self.whiteBall_filename).convert_alpha()
-            self.blackBall = pygame.image.load(self.blackBall_filename).convert_alpha()
-            self.font = pygame.font.SysFont('arial', 16)
-            self.ball_rect = self.whiteBall.get_rect()
-            # 初始化点位
-            self.points = [[] for i in range(self.lines)]
-            for i in range(self.lines):
-                for j in range(self.lines):
-                    self.points[i].append(Position(self.left + i * self.space, self.top + j * self.space))
-        except pygame.error as e:
-            print(e)
-            sys.exit()
+        # 图片资源加载
+        self.chessboard = pygame.image.load(self.background_filename)
+        # 保留透明底
+        self.whiteBall = pygame.image.load(self.whiteBall_filename).convert_alpha()
+        self.blackBall = pygame.image.load(self.blackBall_filename).convert_alpha()
+        self.font = pygame.font.SysFont('arial', 16)
+        self.ball_rect = self.whiteBall.get_rect()
+        # 初始化点位
+        self.points = [[] for _ in range(self.lines)]
+        for i in range(self.lines):
+            for j in range(self.lines):
+                self.points[i].append(Position(self.left + i * self.space, self.top + j * self.space))
 
     # 在(i,j)位置落子
     def drop_at(self, i, j):
+        if not self.check_at(i, j):
+            return False
         pos_x = self.points[i][j].x - int(self.ball_rect.width / 2)
         pos_y = self.points[i][j].y - int(self.ball_rect.height / 2)
 
@@ -52,7 +53,7 @@ class Rule(object):
             self.chessboard.blit(self.whiteBall, (pos_x, pos_y))
 
         self.ball_coord.append(ball_pos)  # 记录已落子信息
-        self.black_turn = not self.black_turn  # 切换黑白子顺序
+        return True
 
     # 判断是否已产生胜方
     def check_over(self):
@@ -121,12 +122,14 @@ class Rule(object):
             j = round(oppo_y / self.space)
         return i, j
 
-    # 测试用数组
-    test_data = [0, 1, 2, 4, 6, 32, 48, 77, 79, 80]
-
     def get_test_data(self):
-        if self.test_data:
-            cur = random.sample(self.test_data, 1).pop(0)
-            self.test_data.remove(cur)
+        # 测试用数组
+        test_data = [0, 1, 2, 4, 6, 32, 48, 77, 79, 80]
+        if test_data:
+            cur = random.sample(test_data, 1).pop(0)
+            test_data.remove(cur)
             return cur
         return -1
+
+    def swap_color(self):
+        self.black_turn = not self.black_turn

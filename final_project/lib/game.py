@@ -13,7 +13,6 @@ class Game:
     def __init__(self, player, id, color="black", mcts_flag=MCTS_FLAG, gobang_size=GOBANG_SIZE, opponent=False):
         self.gobang_size = gobang_size
         self.id = id + 1
-        self.human_pass = False
         self.board = self._create_board(color)
         self.player_color = 2 if color == "black" else 1
         self.mcts = mcts_flag
@@ -132,18 +131,15 @@ class Game:
         ## Agent plays the first move of the game
         if move is None:
             state = _prepare_state(self.board.state)
-            state, reward, done, probs, move = self._play(state, self.player, self.human_pass, competitive=True)
+            state, reward, done, probs, move = self._play(state, self.player, competitive=True)
             self._swap_color()
-            return move
+            return move, done
         ## Otherwise just play a move and answer it
         else:
             state, reward, done = self.board.step(move)
-            if move != self.board.board_size ** 2:
-                self.mcts.advance(move)
-            else:
-                self.human_pass = True
+            self.mcts.advance(move)
             self._swap_color()
-            return True
+            return True, done
 
     def reset(self):
         state = self.board.reset()
