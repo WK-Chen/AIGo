@@ -17,7 +17,7 @@ GOBANG_SIZE = 9
 # Number of move to end a game
 MOVE_LIMIT = GOBANG_SIZE ** 2
 # Maximum ratio that can be replaced in the rotation buffer
-MAX_REPLACEMENT = 0.6
+MAX_REPLACEMENT = 0.4
 # Number of last states to keep
 HISTORY = 4
 # Learning rate
@@ -70,6 +70,6 @@ ROTATION_NUM = 8
 # EVALUATION
 
 # Number of matches against its old version to evaluate the newly trained network
-EVAL_MATCHS = 20
+EVAL_MATCHS = 11
 # Threshold to keep the new neural net
 EVAL_THRESH = 0.55

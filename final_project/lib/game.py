@@ -82,8 +82,9 @@ class Game:
         dataset = []
         moves = 0
         comp = False
+        logging.debug("start one match")
         while not done:
-            ## Prevent game from cycling
+            # Prevent game from cycling
             if moves >= MOVE_LIMIT:
                 reward = 0
                 if self.opponent:
@@ -91,7 +92,7 @@ class Game:
                     return pickle.dumps([reward])
                 return pickle.dumps((dataset, reward))
 
-            ## Adaptative temperature to stop exploration
+            # Adaptative temperature to stop exploration
             if moves > TEMPERATURE_MOVE:
                 comp = True
 
