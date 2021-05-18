@@ -23,10 +23,7 @@ class SelfPlayDataset(Dataset):
         return self.current_len
 
     def __getitem__(self, idx):
-        states = utils.sample_rotation(self.states[idx])
-        # return utils.formate_state(states, self.plays[idx], self.winners[idx])
-        # FIXME should be fix, sample_rotation(state, num=1) & formate_state(state, probas, winner)
-        return states, self.plays[idx], self.winners[idx]
+        return utils.formate_state(self.states[idx], self.plays[idx], self.winners[idx])
 
     def update(self, game):
         """ Rotate the circular buffer to add new games at end """
@@ -34,7 +31,7 @@ class SelfPlayDataset(Dataset):
         moves = len(game[0])
         rand_list = [i for i in range(moves)]
         random.shuffle(rand_list)
-        rand_list = rand_list[:(len(rand_list) // 2)]
+        rand_list = rand_list[:(len(rand_list) // 3)]
         number_moves = len(rand_list)
         self.current_len = min(self.current_len + number_moves, MOVES)
 

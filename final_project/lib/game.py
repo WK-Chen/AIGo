@@ -110,7 +110,6 @@ class Game:
                 new_state, reward, done, probs, action = self._play(
                     state, self.player, competitive=comp)
                 self._swap_color()
-                # logging.info("Move {}, Swap color".format(moves))
                 dataset.append((state.cpu().data.numpy(), probs, self.player_color, action))
                 state = new_state
                 moves += 1

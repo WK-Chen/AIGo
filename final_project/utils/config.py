@@ -44,9 +44,9 @@ TEMPERATURE_MOVE = 5
 
 # TRAINING
 # Number of simulated game generated per round
-SIMULATION_PER_ROUND = 100
+SIMULATION_PER_ROUND = 50
 # Number of moves to consider when creating the batch
-MOVES = 1000
+MOVES = 10000
 # Number of mini-batch before evaluation during training
 BATCH_SIZE = 64
 # Number of channels of the output feature maps
@@ -65,9 +65,8 @@ ADAM = False
 LR_DECAY = 0.1
 # Learning rate annnealing interval
 LR_DECAY_ITE = 100 * TRAIN_STEPS
-# Print the loss
-LOSS_TICK = BATCH_SIZE // 4
 
+ROTATION_NUM = 8
 # EVALUATION
 
 # Number of matches against its old version to evaluate the newly trained network

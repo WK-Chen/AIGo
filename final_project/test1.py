@@ -1,9 +1,11 @@
-import torch
-from utils.utils import load_player
-import torch
+import numpy as np
+x = [(None, None), ((np.rot90, 1), None), ((np.rot90, 2), None),
+                ((np.rot90, 3), None), (np.fliplr, None), (np.flipud, None),
+                (np.flipud, (np.rot90, 1)), (np.fliplr, (np.rot90, 1))]
 
-print(torch.__version__)  # 查看torch当前版本号
-
-print(torch.version.cuda)  # 编译当前版本的torch使用的cuda版本号
-
-print(torch.cuda.is_available())  # 查看当前cuda是否可用于当前版本的Torch，如果输出True，则表示可用
+o = np.array([[1,2,3],[4,5,6],[7,8,9]])
+y = np.reshape(o, -1)
+print(o)
+print(y)
+b = np.rot90(o)
+print(b)

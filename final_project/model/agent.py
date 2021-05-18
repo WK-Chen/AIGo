@@ -37,7 +37,6 @@ class Player:
 
         filename = os.path.join(dir_path, "{}.pth.tar".format(filename))
         state['model'] = model.state_dict()
-        logging.info("saving")
         torch.save(state, filename)
 
     def load_models(self, model_path):

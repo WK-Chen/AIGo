@@ -1,10 +1,5 @@
-import multiprocessing
-import time
-import signal
-import os
-from lib.play import play, self_play
-from train import train
-from lib.process import MyPool
+from lib.play import self_play
+from lib.train import train
 import logging
 
 logging.basicConfig(
@@ -23,4 +18,4 @@ def main(round):
 
 
 if __name__ == "__main__":
-    main(round=0)
+    main(round=27)

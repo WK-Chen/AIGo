@@ -1,5 +1,4 @@
-from train import train
-from lib.play import self_play
+from lib.train import train
 import logging
 
 logging.basicConfig(
@@ -11,10 +10,11 @@ logging.basicConfig(
 def main(round):
     while True:
         logging.info("Starting Round: {}".format(round))
-        self_play(round)
+        # self_play(round)
+        train(round)
         logging.info("Finished Round: {}".format(round))
         # round += 1
 
 
 if __name__ == "__main__":
-    main(round=0)
+    main(round=26)
