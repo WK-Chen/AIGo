@@ -14,8 +14,8 @@ class Rule(object):
     blackBall_filename = 'img/blackBall.png'
     # 正式规格：上下左右空隙16像素，格间距20像素，将棋盘抽象成15*15矩阵
     # top, left, space, lines = (16, 16, 20, 15)
-    # 测试规格：上下左右空间77像素，格间距20像素，将棋盘抽象成9*9矩阵
-    top, left, space, lines = (77, 77, 20, 9)
+    # 测试规格：上下空间30像素，左右空间30像素，格间距40像素，将棋盘抽象成9*9矩阵
+    top, left, space, lines = (30, 30, 40, 9)
     # 棋盘格子线颜色(黑)
     color = (0, 0, 0)
 

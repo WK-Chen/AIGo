@@ -6,7 +6,7 @@ def main():
     # pygame初始化
     pygame.init()
     # 设置窗口大小
-    size = width, height = 313, 313
+    size = width, height = 374, 384
     screen = pygame.display.set_mode(size)
     # 窗口标题
     pygame.display.set_caption('五子棋')
