@@ -46,11 +46,27 @@ class GameManager(multiprocessing.Process):
                 self.game_queue.task_done()
                 self.result_queue.put(answer)
             except Exception as e:
+                print(e)
                 print("Game has thrown an error")
 
 
-def create_matches(player, opponent, match_number):
-    results = []
-    for game_id in tqdm(range(match_number)):
-        results.append(Game(player, game_id, opponent=opponent).__call__())
-    return results
+def create_matches(player, opponent, match_number, cores=1):
+    queue = multiprocessing.JoinableQueue()
+    results = multiprocessing.Queue()
+    game_results = []
+
+    game_managers = [
+        GameManager(queue, results)
+        for _ in range(cores)
+    ]
+
+    for game_manager in game_managers:
+        game_manager.start()
+
+    for game_id in range(match_number):
+        queue.put(Game(player, game_id, opponent=opponent))
+
+    for _ in range(cores):
+        queue.put(None)
+
+    return queue, results

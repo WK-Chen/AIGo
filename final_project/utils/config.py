@@ -2,17 +2,12 @@ import torch
 import multiprocessing
 
 # CONFIG
-
 # CUDA variable from Torch
 CUDA = torch.cuda.is_available()
 # Dtype of the tensors depending on CUDA
 DEVICE = torch.device("cuda") if CUDA else torch.device("cpu")
-# Number of self-play parallel games
-PARALLEL_SELF_PLAY = 1
-# Number of evaluation parallel games
-PARALLEL_EVAL = 10
 # MCTS parallel
-MCTS_PARALLEL = 2
+MCTS_PARALLEL = 4
 
 
 # GLOBAL
@@ -28,7 +23,7 @@ HISTORY = 4
 # Learning rate
 LR = 0.01
 # Number of MCTS simulation
-MCTS_SIM = 16
+MCTS_SIM = 64
 # Exploration constant
 C_PUCT = 0.2
 # L2 Regularization
@@ -43,17 +38,15 @@ EPS = 0.25
 ALPHA = 0.03
 # Batch size for evaluation during MCTS
 BATCH_SIZE_EVAL = 2
-# Number of self-play before training
-SELF_PLAY_MATCH = PARALLEL_SELF_PLAY
 # Number of moves before changing temperature to stop exploration
 TEMPERATURE_MOVE = 5
 
 
 # TRAINING
 # Number of simulated game generated per round
-SIMULATION_PER_ROUND = 1000
+SIMULATION_PER_ROUND = 50
 # Number of moves to consider when creating the batch
-MOVES = 500
+MOVES = 10000
 # Number of mini-batch before evaluation during training
 BATCH_SIZE = 64
 # Number of channels of the output feature maps
@@ -72,14 +65,11 @@ ADAM = False
 LR_DECAY = 0.1
 # Learning rate annnealing interval
 LR_DECAY_ITE = 100 * TRAIN_STEPS
-# Print the loss
-LOSS_TICK = BATCH_SIZE // 4
-# Refresh the dataset
-REFRESH_TICK = BATCH_SIZE
 
+ROTATION_NUM = 8
 # EVALUATION
 
 # Number of matches against its old version to evaluate the newly trained network
-EVAL_MATCHS = 10
+EVAL_MATCHS = 11
 # Threshold to keep the new neural net
 EVAL_THRESH = 0.55

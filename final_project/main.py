@@ -1,10 +1,5 @@
-import multiprocessing
-import time
-import signal
-import os
-from lib.play import play, self_play
-from train import train
-from lib.process import MyPool
+from lib.play import self_play
+from lib.train import train
 import logging
 
 logging.basicConfig(
@@ -14,14 +9,13 @@ logging.basicConfig(
 
 
 def main(round):
-    while True:
+    while round < 100:
         logging.info("Starting Round: {}".format(round))
-        # self_play(round)
+        self_play(round)
         train(round)
         logging.info("Finished Round: {}".format(round))
         round += 1
-        break
 
 
 if __name__ == "__main__":
-    main(round=0)
+    main(round=27)

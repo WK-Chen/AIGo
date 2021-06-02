@@ -11,7 +11,7 @@ def evaluate(player, new_player):
     logging.info("Starting to evaluate trained model !")
     start_time = timeit.default_timer()
 
-    ## Play the matches and get the results
+    # Play the matches and get the results
     results = play(player, opponent=new_player)
     final_time = timeit.default_timer() - start_time
     logging.info("[EVALUATION] Total duration: %.3f seconds, average duration: %.3f seconds" % (

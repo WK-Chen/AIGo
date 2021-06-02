@@ -11,7 +11,7 @@ from .process import create_matches
 from lib.game import Game
 
 
-def self_play(round):
+def self_play(round, target_round):
     """
     Used to create a learning dataset for the value and policy network.
     Play against itself and backtrack the winner to maximize winner moves
@@ -19,64 +19,47 @@ def self_play(round):
     """
 
     logging.info("Start self_play()")
-    # Load the player when restarting training
-    logging.info("Loading Player")
-    if round != 0:
-        player, _ = load_player(round)
-    else:
-        player = get_player()
+    while round < target_round:
+        # Load the player when restarting training
+        logging.info("Loading Player")
+        while not os.path.isdir('./saved_models/{}'.format(round-1)):
+            logging.info("self_play process sleeping")
+            time.sleep(60)
+        time.sleep(5)
+        if round != 0:
+            player, _ = load_player(round-1)
+        else:
+            player = get_player()
 
-    logging.info("Loaded a player from round {}".format(round))
+        logging.info("Loaded a player from round {}".format(round-1))
 
-    if not player:
-        logging.error("Player didn't load correctly!")
-        return
-    if not os.path.isdir("data/{}".format(round)):
-        os.mkdir("data/{}".format(round))
-    else:
-        logging.error("A directory already exists!")
-    # Create the self-play match
-    logging.info("Creating a match")
-
-    results = []
-    count = 0
-    start_time = timeit.default_timer()
-    for game_id in trange(SIMULATION_PER_ROUND):
-        results.append(Game(player, game_id, opponent=None).__call__())
-        if (game_id + 1) % 10 == 0:
-            logging.info("Collecting data")
-            for id, result in enumerate(results):
-                with open("data/{}/id_{}".format(round, count*10+id), 'wb') as f:
-                    f.write(result)
-            results = []
-            count += 1
-            logging.info("Data collected")
-    final_time = timeit.default_timer() - start_time
-    logging.info("Done saving in %.3f seconds, average duration:"
-                 " %.3f seconds" % (final_time, final_time / SIMULATION_PER_ROUND))
-
-
+        if not player:
+            logging.error("Player didn't load correctly!")
+            return
+        if not os.path.isdir("data/{}".format(round)):
+            os.mkdir("data/{}".format(round))
+        # Create the self-play match
+        logging.info("Creating matches ...")
+        queue, results = create_matches(player, opponent=None, match_number=SIMULATION_PER_ROUND, cores=4)
+        try:
+            queue.join()
+            for game_id in range(SIMULATION_PER_ROUND):
+                result = results.get()
+                if result:
+                    with open("data/{}/id_{}".format(round, game_id), 'wb') as f:
+                        f.write(result)
+        finally:
+            queue.close()
+            results.close()
+        round += 1
+    logging.info("Ending self_play()")
 
 def play(player, opponent):
     """ Game between two players, for evaluation """
 
     # Create the evaluation match queue of processes
     logging.info("Staring to evaluate")
-    queue, results = create_matches(deepcopy(player), opponent=deepcopy(opponent),
-                                    cores=PARALLEL_EVAL, match_number=EVAL_MATCHS)
-    try:
-        queue.join()
-
-        # Gather the results and push them into a result queue
-        # that will be sent back to the evaluation process
-        logging.info("Starting to fetch fresh games")
-        final_result = []
-        for idx in range(EVAL_MATCHS):
-            result = results.get()
-            if result:
-                final_result.append(pickle.loads(result))
-        logging.info("Done fetching")
-    finally:
-        queue.close()
-        results.close()
-    return final_result
+    results = []
+    for game_id in trange(EVAL_MATCHS):
+        results.append(pickle.loads(Game(player, game_id, opponent=deepcopy(opponent)).__call__()))
+    return results

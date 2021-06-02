@@ -254,9 +254,10 @@ class MCTS:
 
         # Pick the best move
         final_move, final_probs = self._draw_move(action_scores, competitive=competitive)
-        # Advance the root to keep the statistics of the childrens
+        # Advance the root to keep the statistics of the children
         for idx in range(len(self.root.childrens)):
             if self.root.childrens[idx].move == final_move:
                 break
-        self.root = self.root.childrens[idx]
+        if len(self.root.childrens) != 0:
+            self.root = self.root.childrens[idx]
         return final_probs, final_move

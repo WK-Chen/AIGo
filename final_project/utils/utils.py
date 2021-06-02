@@ -5,6 +5,7 @@ from model.agent import Player
 from utils.config import *
 import logging
 
+
 def _prepare_state(state):
     """
     Transform the numpy state into a PyTorch tensor with cuda if available
@@ -86,11 +87,35 @@ def sample_rotation(state, num=1):
     return np.array(states)
 
 
-def formate_state(state, probas, winner):
-    """ Repeat the probs and the winner to make every example identical after
-        the dihedral rotation has been applied """
+def formate_state(state, prob, winner, rotation_num=ROTATION_NUM):
+    dh_group = [(None, None), ((np.rot90, 1), None), ((np.rot90, 2), None),
+                ((np.rot90, 3), None), (np.fliplr, None), (np.flipud, None),
+                (np.flipud, (np.rot90, 1)), (np.fliplr, (np.rot90, 1))]
+    random.shuffle(dh_group)
 
-    probs = np.reshape(probas, (1, probas.shape[0]))
-    probs = np.repeat(probas, 8, axis=0)
-    winner = np.full((8, 1), winner)
-    return state, probas, winner
+    states = []
+    boards = (HISTORY + 1) * 2  # Number of planes to rotate
+    probs = []
+
+    for idx in range(rotation_num):
+        new_state = np.zeros((boards + 1, GOBANG_SIZE, GOBANG_SIZE,))
+        new_state[:boards] = state[:boards]
+        new_prob = np.reshape(prob, (GOBANG_SIZE, GOBANG_SIZE))
+        for grp in dh_group[idx]:
+            if isinstance(grp, tuple):
+                new_prob = grp[0](new_prob, k=grp[1])
+            elif grp is not None:
+                new_prob = grp(new_prob)
+            for i in range(boards):
+                if isinstance(grp, tuple):
+                    new_state[i] = grp[0](new_state[i], k=grp[1])
+                elif grp is not None:
+                    new_state[i] = grp(new_state[i])
+
+        new_state[boards] = state[boards]
+        new_prob = np.reshape(new_prob, -1)
+        states.append(new_state)
+        probs.append(new_prob)
+    winners = np.full((rotation_num, 1), winner)
+
+    return np.array(states), np.array(probs), winners
