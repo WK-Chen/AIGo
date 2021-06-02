@@ -15,11 +15,11 @@ class GUI(object):
         self.blackBall_filename = './img/blackBall.png'
         # restrict to board size 9
         self.gobang_size = gobang_size
-        self.top, self.left, self.space, self.lines = (77, 77, 20, 9)
+        self.top, self.left, self.space, self.lines = (30, 30, 40, 9)
 
     def init(self):
         pygame.init()
-        size = 313, 313
+        size = 374, 384
         self.screen = pygame.display.set_mode(size)
         pygame.display.set_caption('Gobang')
         font = pygame.font.SysFont('arial', 36)
