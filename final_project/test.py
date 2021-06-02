@@ -1,4 +1,7 @@
+import multiprocessing
 from lib.train import train
+from lib.play import self_play
+from tensorboardX import SummaryWriter
 import logging
 
 logging.basicConfig(
@@ -8,13 +11,14 @@ logging.basicConfig(
 
 
 def main(round):
-    while True:
-        logging.info("Starting Round: {}".format(round))
-        # self_play(round)
-        train(round)
-        logging.info("Finished Round: {}".format(round))
-        # round += 1
+    logging.info("Starting Round: {}".format(round))
+    #writer = SummaryWriter()
+    # self_play(round, 1)
+    train(round, 1)
+    logging.info("Finished Round: {}".format(round))
+    # round += 1
 
 
 if __name__ == "__main__":
-    main(round=26)
+    multiprocessing.set_start_method('spawn', force=True)
+    main(0)

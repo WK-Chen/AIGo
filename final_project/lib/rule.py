@@ -23,12 +23,12 @@ class Rule(object):
 =======
     def __init__(self, gobang_size=GOBANG_SIZE):
         # 图片资源命名
-        self.background_filename = '../img/chessboard.png'
-        self.whiteBall_filename = '../img/whiteBall.png'
-        self.blackBall_filename = '../img/blackBall.png'
+        self.background_filename = "./img/chessboard.png"
+        self.whiteBall_filename = './img/whiteBall.png'
+        self.blackBall_filename = './img/blackBall.png'
         if gobang_size == 15:
             self.top, self.left, self.space, self.lines = (16, 16, 20, 15)
-        elif gobang_size == 9:
+        elif gobang_size == 6:
             self.top, self.left, self.space, self.lines = (77, 77, 20, 9)
         else:
             print("Wrong size")

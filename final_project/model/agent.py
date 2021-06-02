@@ -1,7 +1,7 @@
 import os
-from .resnet import ResNet
-from .value import ValueNet
-from .policy import PolicyNet
+from model.resnet import ResNet
+from model.value import ValueNet
+from model.policy import PolicyNet
 from utils.config import *
 import logging
 
@@ -21,16 +21,19 @@ class Player:
         probs = self.policy_net(feature_maps)
         return value, probs
 
-    def save_models(self, state, round):
+    def save_models(self, state, round, best_player=False):
         """ Save the models """
 
         for model in ["extractor", "policy_net", "value_net"]:
-            self._save_checkpoint(getattr(self, model), model, state, round)
+            self._save_checkpoint(getattr(self, model), model, state, round, best_player)
 
-    def _save_checkpoint(self, model, filename, state, round):
+    def _save_checkpoint(self, model, filename, state, round, best_player=False):
         """ Save a checkpoint of the models """
 
-        dir_path = "./saved_models/{}".format(round)
+        if best_player:
+            dir_path = "./best_player"
+        else:
+            dir_path = "./saved_models/{}".format(round)
         if not os.path.exists(dir_path):
             logging.info("creating new directory")
             os.makedirs(dir_path)

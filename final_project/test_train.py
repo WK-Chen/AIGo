@@ -1,4 +1,4 @@
-from lib.play import self_play
+import multiprocessing
 from lib.train import train
 import logging
 
@@ -9,13 +9,11 @@ logging.basicConfig(
 
 
 def main(round):
-    while round < 100:
-        logging.info("Starting Round: {}".format(round))
-        self_play(round)
-        train(round)
-        logging.info("Finished Round: {}".format(round))
-        round += 1
+    logging.info("Starting Round: {}".format(round))
+    train(round, 1)
+    logging.info("Finished Round: {}".format(round))
 
 
 if __name__ == "__main__":
-    main(round=27)
+    multiprocessing.set_start_method('spawn', force=True)
+    main(0)

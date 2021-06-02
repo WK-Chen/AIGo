@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 from utils.config import *
 from model.mcts import MCTS
-from .go import GobangEnv
+from lib.gobang import GobangEnv
 from utils.utils import _prepare_state
 
 
@@ -67,6 +67,7 @@ class Game:
             action_scores[action] = 1
 
         state, reward, done = self.board.step(action)
+        # logging.warning("move:\n{}".format(self.board.board.board))
         if done:
             logging.debug("Finish a play: {}".format(self.board.board.board))
         return state, reward, done, action_scores, action
@@ -85,12 +86,12 @@ class Game:
         logging.debug("start one match")
         while not done:
             # Prevent game from cycling
-            if moves >= MOVE_LIMIT:
-                reward = 0
+            if not moves < MOVE_LIMIT:
+                reward = 1
                 if self.opponent:
                     logging.warning("[EVALUATION] %d :Reach move limit, black lose" % self.id)
                     return pickle.dumps([reward])
-                return pickle.dumps((dataset, reward))
+                return moves, pickle.dumps((dataset, reward))
 
             # Adaptative temperature to stop exploration
             if moves > TEMPERATURE_MOVE:
@@ -109,20 +110,20 @@ class Game:
                 logging.debug("Starting self-play")
                 state = _prepare_state(state)
                 new_state, reward, done, probs, action = self._play(
-                    state, self.player, competitive=comp)
+                    state, self.player, competitive=False)
                 self._swap_color()
                 dataset.append((state.cpu().data.numpy(), probs, self.player_color, action))
                 state = new_state
                 moves += 1
 
-        logging.debug("Finish one match")
+        logging.info("Finish one match. moves:{}".format(moves))
         # Pickle the result because multiprocessing
         if self.opponent:
-            logging.info("[EVALUATION] Match %d done in eval after %d moves, winner %s"
+            logging.info("Match %d done in eval after %d moves, winner %s"
                          % (self.id, moves, "black" if reward == 0 else "white"))
             return pickle.dumps([reward])
         # print(dataset, reward)
-        return pickle.dumps((dataset, reward))
+        return moves, pickle.dumps((dataset, reward))
 
     def solo_play(self, move=None):
         """ Used to play against a human or for GTP, cant be called
@@ -137,7 +138,8 @@ class Game:
         ## Otherwise just play a move and answer it
         else:
             state, reward, done = self.board.step(move)
-            self.mcts.advance(move)
+            if MCTS_FLAG:
+                self.mcts.advance(move)
             self._swap_color()
             return True, done
 

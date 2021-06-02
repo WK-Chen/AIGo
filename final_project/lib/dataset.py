@@ -29,23 +29,20 @@ class SelfPlayDataset(Dataset):
         """ Rotate the circular buffer to add new games at end """
 
         moves = len(game[0])
-        rand_list = [i for i in range(moves)]
-        random.shuffle(rand_list)
-        rand_list = rand_list[:(len(rand_list) // 3)]
-        number_moves = len(rand_list)
-        self.current_len = min(self.current_len + number_moves, MOVES)
-
-        self.states = np.roll(self.states, number_moves, axis=0)
-        self.states[:number_moves] = np.vstack(tuple(game[0][i][0] for i in rand_list))
-        self.plays = np.roll(self.plays, number_moves, axis=0)
-        self.plays[:number_moves] = np.vstack(tuple(game[0][i][1] for i in rand_list))
+        final_moves = moves
+        sample = random.sample([i for i in range(moves)], final_moves)
+        self.current_len = min(self.current_len + final_moves, MOVES)
+        self.states = np.roll(self.states, final_moves, axis=0)
+        self.states[:final_moves] = np.vstack(tuple(game[0][i][0] for i in sample))
+        self.plays = np.roll(self.plays, final_moves, axis=0)
+        self.plays[:final_moves] = np.vstack(tuple(game[0][i][1] for i in sample))
 
         # Replace the player color with the end game result
-        players = np.array([game[0][i][2] for i in rand_list])
+        players = np.array([game[0][i][2] for i in sample])
         players[np.where(players - 1 != game[1])] = -1
         players[np.where(players != -1)] = 1
 
-        self.winners = np.roll(self.winners, number_moves, axis=0)
-        self.winners[:number_moves] = players
+        self.winners = np.roll(self.winners, final_moves, axis=0)
+        self.winners[:final_moves] = players
 
-        return number_moves
+        return final_moves

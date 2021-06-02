@@ -34,6 +34,7 @@ class Board:
         return _board
 
     def check_terminal(self, player_color):
+        # TODO 调回五子棋
         def five(array):
             winner = None
             dic = {}
@@ -43,9 +44,9 @@ class Board:
                     continue
                 else:
                     dic[k] = s
-            if 1 in dic and dic[1] >= 5:
+            if 1 in dic and dic[1] >= 4:
                 winner = 1
-            elif 2 in dic and dic[2] >= 5:
+            elif 2 in dic and dic[2] >= 4:
                 winner = 2
             if winner is not None and winner == player_color:
                 logging.warning("winner:{}, player_color:{}".format(winner,player_color))
@@ -63,8 +64,9 @@ class Board:
             if winner is not None:
                 self.is_terminal = True
                 return winner
-
-        for i in range(-self.board_size + 5, self.board_size - 4):
+        # TODO
+        # for i in range(-self.board_size + 5, self.board_size - 4):
+        for i in range(-self.board_size + 4, self.board_size - 3):
             winner = five(self.board.diagonal(offset=i))
             if winner is not None:
                 self.is_terminal = True
@@ -75,4 +77,7 @@ class Board:
                 self.is_terminal = True
                 return winner
 
+        if not np.sum(np.array(self.board > 0)):
+            self.is_terminal = True
+            return 2
         return None

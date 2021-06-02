@@ -11,15 +11,13 @@ from utils.utils import sample_rotation
 @jit
 def _opt_select(nodes, c_puct=C_PUCT):
     """ Optimized version of the selection based of the PUCT formula """
-
     total_count = 0
     for i in range(nodes.shape[0]):
         total_count += nodes[i][1]
 
     action_scores = np.zeros(nodes.shape[0])
     for i in range(nodes.shape[0]):
-        action_scores[i] = nodes[i][0] + c_puct * nodes[i][2] * \
-                           (np.sqrt(total_count) / (1 + nodes[i][1]))
+        action_scores[i] = nodes[i][0] + c_puct * nodes[i][2] * (np.sqrt(total_count) / (1 + nodes[i][1]))
 
     equals = np.where(action_scores == np.max(action_scores))[0]
     if equals.shape[0] > 0:
@@ -31,9 +29,19 @@ def dirichlet_noise(probs):
     """ Add Dirichlet noise in the root node """
 
     dim = (probs.shape[0],)
-    new_probs = (1 - EPS) * probs + \
-                 EPS * np.random.dirichlet(np.full(dim, ALPHA))
+    new_probs = (1 - EPS) * probs + EPS * np.random.dirichlet(np.full(dim, ALPHA))
     return new_probs
+
+def softmax(x):
+    probs = np.exp(x - np.max(x))
+    probs /= np.sum(probs)
+    return probs
+
+def softmax_ignore_zero(x):
+    flag = np.array(x > 0)
+    exp_x = np.exp(x - np.max(x)) * flag
+    exp_x /= np.sum(exp_x) + 1e-15
+    return exp_x
 
 
 class Node:
@@ -54,18 +62,24 @@ class Node:
 
     def update(self, v):
         """ Update the node statistics after a playout """
-
+        self.n += 1
         self.w = self.w + v
-        self.q = self.w / self.n if self.n > 0 else 0
+        self.q = self.w / self.n
+
+    def update_recursive(self, leaf_value):
+        """Like a call to update(), but applied recursively for all ancestors.
+        """
+        # If it is not root, this node's parent should be updated first.
+        if self.parent:
+            self.parent.update_recursive(-leaf_value)
+        self.update(leaf_value)
 
     def is_leaf(self):
         """ Check whether node is a leaf or not """
-
         return len(self.childrens) == 0
 
     def expand(self, probs):
         """ Create a child node for every non-zero move probability """
-
         self.childrens = [Node(parent=self, move=idx, prob=probs[idx])
                           for idx in range(probs.shape[0]) if probs[idx] > 0]
 
@@ -132,17 +146,12 @@ class SearchThread(threading.Thread):
         while not current_node.is_leaf() and not done:
             # Select the action that maximizes the PUCT algorithm
             current_node = current_node.childrens[_opt_select(np.array(
-                [[node.q, node.n, node.p]for node in current_node.childrens]))]
+                [[node.q, node.n, node.p] for node in current_node.childrens]))]
 
-            # Virtual loss since multithreading
-            self.lock.acquire()
-            current_node.n += 1
-            self.lock.release()
-
-            state, _, done = game.step(current_node.move)
+            state, reward, done = game.step(current_node.move)
 
         self.condition_search.acquire()
-        self.eval_queue[self.thread_id] = sample_rotation(state, num=1)
+        self.eval_queue[self.thread_id] = state
         self.condition_search.notify()
         self.condition_search.release()
 
@@ -157,36 +166,22 @@ class SearchThread(threading.Thread):
         v = float(result[1])
         self.condition_eval.release()
 
+        # Create the child nodes for the current leaf
+        self.lock.acquire()
         if not done:
-            # Add current leaf state with random dihedral transformation to the evaluation queue
-            # Add noise in the root node
-            if not current_node.parent:
-                probs = dirichlet_noise(probs)
-
             # Modify probability vector depending on valid moves and normalize after that
             valid_moves = game.get_legal_moves()
             illegal_moves = np.setdiff1d(np.arange(game.board_size ** 2),
                                          np.array(valid_moves))
             probs[illegal_moves] = 0
-            total = np.sum(probs)
-            probs /= total
-            # Create the child nodes for the current leaf
-            self.lock.acquire()
             current_node.expand(probs)
-
-            # Backpropagate the result of the simulation
-            while current_node.parent:
-                current_node.update(v)
-                current_node = current_node.parent
-            self.lock.release()
         else:
-            # Would not create the child nodes
-            self.lock.acquire()
-            # Backpropagate the result of the simulation
-            while current_node.parent:
-                current_node.update(v)
-                current_node = current_node.parent
-            self.lock.release()
+            v = 1 if reward == game.player_color - 1 else -1
+            # logging.info("reward:{} player_color:{} v:{}".format(reward, game.player_color, v))
+        # Backpropagate the result of the simulation
+
+        current_node.update_recursive(-v)
+        self.lock.release()
 
 
 class MCTS:
@@ -198,28 +193,24 @@ class MCTS:
         Find the best move, either deterministically for competitive play
         or stochiasticly according to some temperature constant
         """
-
         if competitive:
             moves = np.where(action_scores == np.max(action_scores))[0]
             move = np.random.choice(moves)
-            total = np.sum(action_scores)
-            probs = action_scores / total
-
         else:
-            total = np.sum(action_scores)
-            probs = action_scores / total
-            move = np.random.choice(action_scores.shape[0], p=probs)
+            action_scores = dirichlet_noise(action_scores)
+            move = np.random.choice(action_scores.shape[0], p=action_scores)
 
-        return move, probs
+        return move, action_scores
 
     def advance(self, move):
         """ Manually advance in the tree, used for GTP """
 
         for idx in range(len(self.root.childrens)):
             if self.root.childrens[idx].move == move:
-                final_idx = idx
-                break
-        self.root = self.root.childrens[final_idx]
+                self.root = self.root.childrens[idx]
+                self.root.parent = None
+                return
+        self.root = Node()
 
     def search(self, current_game, player, competitive=False):
         """
@@ -251,13 +242,16 @@ class MCTS:
         action_scores = np.zeros((current_game.board_size ** 2))
         for node in self.root.childrens:
             action_scores[node.move] = node.n
-
-        # Pick the best move
+        # logging.info("raw:{}, sum : {}".format(action_scores, np.sum(action_scores)))
+        action_scores = action_scores / np.sum(action_scores)
+        # NOTE Pick the best move based on action_scores
         final_move, final_probs = self._draw_move(action_scores, competitive=competitive)
+        # logging.info("final moves: {}, final probs:{}".format(final_move, final_probs))
         # Advance the root to keep the statistics of the children
         for idx in range(len(self.root.childrens)):
             if self.root.childrens[idx].move == final_move:
-                break
-        if len(self.root.childrens) != 0:
-            self.root = self.root.childrens[idx]
+                self.root = self.root.childrens[idx]
+                self.root.parent = None
+                return final_probs, final_move
+        self.root = Node()
         return final_probs, final_move

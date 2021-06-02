@@ -1,6 +1,6 @@
 import logging
 import timeit
-from .play import play
+from lib.play import play
 from utils.config import *
 
 
@@ -14,8 +14,8 @@ def evaluate(player, new_player):
     # Play the matches and get the results
     results = play(player, opponent=new_player)
     final_time = timeit.default_timer() - start_time
-    logging.info("[EVALUATION] Total duration: %.3f seconds, average duration: %.3f seconds" % (
-                            final_time, final_time / EVAL_MATCHS))
+    logging.info("Total durations: %.3f econds, average duration: %.3f seconds" % (
+        final_time, final_time / EVAL_MATCHS))
 
     # Count the number of wins for each players
     black_wins = 0

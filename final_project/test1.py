@@ -1,44 +1,35 @@
-import multiprocessing
-import signal
-import time
-from lib.process import MyPool
-
-def a(locka, lockb):
-    while True:
-        print("acquire a")
-        locka.acquire()
-        print("a")
-        print("release b")
-        lockb.release()
-        time.sleep(0.5)
-def b(locka, lockb):
-    while True:
-        print("acquire b")
-        lockb.acquire()
-        print("b")
-        print("release a")
-        locka.release()
-        time.sleep(0.5)
-
-def main():
-    multiprocessing.set_start_method('spawn', force=True)
-    original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
-    pool = MyPool(1)
-    locka = multiprocessing.Manager().Lock()
-    lockb = multiprocessing.Manager().Lock()
-    signal.signal(signal.SIGINT, original_sigint_handler)
-    try:
-        self_play_proc = pool.apply_async(a, args=(locka, lockb))
-        train_proc = pool.apply_async(b, args=(locka, lockb))
-        # self_play_proc.get(60000)
-        # train_proc.get(60000)
-
-    except KeyboardInterrupt:
-        pool.terminate()
-    else:
-        pool.close()
-        pool.join()
+import torch
+import re
+import numpy as np
 
 
-if __name__ == '__main__':
-    main()
+def softmax_ignore_zero(x):
+    flag = np.array(x > 0)
+    exp_x = np.exp(x - np.max(x)) * flag
+    exp_x /= np.sum(exp_x)
+    return exp_x
+
+
+def softmax(x):
+    probs = np.exp(x - np.max(x))
+    probs /= np.sum(probs)
+    return probs
+
+
+x = torch.tensor([[-0.1285],
+                  [-0.0333],
+                  [-0.0588],
+                  [0.0403],
+                  [-0.0526],
+                  [0.0526]])
+
+y = torch.tensor([[-1],
+                  [-1],
+                  [-1],
+                  [1],
+                  [-1],
+                  [1],])
+mse = torch.nn.MSELoss()
+z = (x-y)**2
+print(z.mean())
+print(mse(x.view(-1), y.view(-1)))

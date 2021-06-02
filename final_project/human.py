@@ -1,4 +1,5 @@
 import pygame as pygame
+import random
 from lib.rule import Rule
 from utils.utils import load_player
 from lib.game import Game
@@ -6,8 +7,8 @@ from utils.config import *
 from time import sleep
 
 
-def main(round):
-    player, checkpoint = load_player(round)
+def main(round, best_player=False):
+    player, checkpoint = load_player(round,best_player=best_player)
     ai = Game(player, 0, opponent=None)
     print("model load finished")
     pygame.init()
@@ -22,6 +23,7 @@ def main(round):
     screen.blit(rule.chessboard, (0, 0))
     pygame.display.update()
 
+    # random.random(1)
     while True:
         # 设置帧率
         if game_over:
@@ -32,14 +34,16 @@ def main(round):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-
+            # TODO random whose first
             if rule.black_turn:
+                print("computer turn")
                 move, game_over = ai.solo_play()
                 i, j = move % rule.lines, move // rule.lines
                 drop_success = rule.drop_at(i, j)
                 if drop_success:
                     rule.swap_color()
             else:
+                print("player turn")
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     i, j = rule.get_coord(event.pos)
                     drop_success = rule.drop_at(i, j)
@@ -55,4 +59,4 @@ def main(round):
 
 
 if __name__ == '__main__':
-    main(round=31)
+    main(round=99, best_player=True)

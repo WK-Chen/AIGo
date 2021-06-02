@@ -3,6 +3,7 @@ import multiprocessing.pool
 from lib.game import Game
 from tqdm import tqdm
 
+
 class NoDaemonProcess(multiprocessing.Process):
     # make 'daemon' attribute always return False
     def _get_daemon(self):
@@ -53,7 +54,6 @@ class GameManager(multiprocessing.Process):
 def create_matches(player, opponent, match_number, cores=1):
     queue = multiprocessing.JoinableQueue()
     results = multiprocessing.Queue()
-    game_results = []
 
     game_managers = [
         GameManager(queue, results)
@@ -64,6 +64,27 @@ def create_matches(player, opponent, match_number, cores=1):
         game_manager.start()
 
     for game_id in range(match_number):
+        queue.put(Game(player, game_id, opponent=opponent))
+
+    for _ in range(cores):
+        queue.put(None)
+
+    return queue, results
+
+
+def evaluate_matches(player, opponent, evalate_number, cores=1):
+    queue = multiprocessing.JoinableQueue()
+    results = multiprocessing.Queue()
+
+    game_managers = [
+        GameManager(queue, results)
+        for _ in range(cores)
+    ]
+
+    for game_manager in game_managers:
+        game_manager.start()
+
+    for game_id in range(evalate_number):
         queue.put(Game(player, game_id, opponent=opponent))
 
     for _ in range(cores):

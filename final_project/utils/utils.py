@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import random
+import re
 from model.agent import Player
 from utils.config import *
 import logging
@@ -36,10 +37,16 @@ def get_version(model_path, version):
     return file_version
 
 
-def load_player(round):
+def load_player(round, last_player=False, best_player=False):
     """ Load a player given a model_path """
-    logging.info("load_player()")
-    path = './saved_models/{}'.format(round)
+    if last_player:
+        list = os.listdir('./saved_models/')
+        list.sort(key=lambda i: int(re.match(r'(\d+)', i).group()))
+        path = './saved_models/' + list[-1]
+    elif best_player:
+        path = './best_player'
+    else:
+        path = './saved_models/{}'.format(round)
     if not os.path.isdir(path):
         logging.error("Model path({}) incorrect !".format(path))
     player = Player()
