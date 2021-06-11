@@ -76,12 +76,12 @@ def start_play(UI, game, ai, human, ai_first=True):
             return
 
 def run():
-    model_file = 'saved_models/1000.model'
+    model_path = "./saved_models/game_id_2200_win_pure_mcts_3000.model"
     width = BOARD_WIDTH
     height = BOARD_WIDTH
     board = Board(width=width, height=height, n_in_row=N_IN_ROW)
     game = Game(board)
-    best_policy = PolicyValueNet(width, height, model_file=model_file)
+    best_policy = PolicyValueNet(width, height, model_file=model_path)
     ai = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
     UI = GUI()
     human = Human(UI)

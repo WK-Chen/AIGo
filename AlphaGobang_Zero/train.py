@@ -1,5 +1,4 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES']='7'
 import random
 import numpy as np
 import logging
@@ -94,6 +93,9 @@ class TrainPipeline:
                                                           temp=self.temp)
             play_data = list(play_data)[:]
             episode_len.append(len(play_data))
+            # eliminate early moves from the train buffer
+            """if len(play_data) < 14 and random.random() > 0.1:
+                continue"""
             # augment the data
             play_data = self.get_equi_data(play_data)
             self.data_buffer.extend(play_data)
@@ -123,6 +125,9 @@ class TrainPipeline:
                 #     f.write(pickle.dumps(winner, zip(*play_data)))
                 play_data = list(play_data)[:]
                 episode_len.append(len(play_data))
+                # eliminate early moves from the train buffer
+                if len(play_data) > 15 and random.random() < 0.4:
+                    play_data = play_data[15:]
                 # augment the data
                 play_data = self.get_equi_data(play_data)
                 self.data_buffer.extend(play_data)
@@ -168,8 +173,8 @@ class TrainPipeline:
             self.lr_multiplier *= 1.5
         writer.add_scalar("scalar/loss", np.mean(losses), total_ite)
         writer.add_scalar("scalar/policy_entropy", np.mean(entropys), total_ite)
-        logging.info("kl:{:.5f},lr_multiplier:{:.3f},loss:{},entropy:{},".format(
-            kl, self.lr_multiplier, np.mean(losses), np.mean(entropys)))
+        # logging.info("kl:{:.5f},lr_multiplier:{:.3f},loss:{},entropy:{},".format(
+        #     kl, self.lr_multiplier, np.mean(losses), np.mean(entropys)))
         return np.mean(losses), np.mean(entropys), total_ite
 
     def policy_evaluate(self, n_games=10):
@@ -202,7 +207,8 @@ class TrainPipeline:
         try:
             while game_id < self.game_batch_num:
                 # logging.info("begin self play")
-                game_id = self.collect_selfplay_data_parallel(writer, game_id, self.play_batch_size)
+                # game_id = self.collect_selfplay_data_parallel(writer, game_id, self.play_batch_size)
+                game_id = self.collect_selfplay_data(writer, game_id, self.play_batch_size)
                 # logging.info("start training")
                 if len(self.data_buffer) > self.batch_size:
                     loss, entropy, total_ite = self.policy_update(writer, total_ite)
@@ -219,7 +225,7 @@ class TrainPipeline:
                         self.policy_value_net.save_model(
                             './saved_models/game_id_{}_win_pure_mcts_{}.model'.
                                 format(game_id, self.pure_mcts_playout_num))
-                        self.policy_value_net.save_model('./saved_models/best_policy_6_4.model')
+                        self.policy_value_net.save_model('./saved_models/best_policy_9_5_{}.model'.format(win_ratio))
                         if self.best_win_ratio == 1.0 and self.pure_mcts_playout_num < 5000:
                             self.pure_mcts_playout_num += 1000
                             self.best_win_ratio = BEST_WIN_RATIO

@@ -151,3 +151,10 @@ class PolicyValueNet:
         """ save model params to file """
         net_params = self.get_policy_param()  # get model params
         torch.save(net_params, model_file)
+
+
+def save_sample():
+    model = Net(9, 9)
+    torch.save(model, './sample_model.pth')
+
+# save_sample()
