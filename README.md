@@ -9,5 +9,3 @@
 ### 5/7/2021
 * AI Gomoku
 * Uses reinforcement learning by AlphaZero methods
-* Example  
-@ TO ADD
